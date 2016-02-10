@@ -1,5 +1,5 @@
 #!/bin/Rscript
-
+print("Starting to process")
 #------------------
 	## this Rscript is used for creating input data for WaSSI model
 	## the input data for this code is a ENVI data ---- * and *.hdr
@@ -21,6 +21,7 @@ library(plyr)
 # set the first args as the data location
 setwd(args[1])
 da<-read.ENVI(args[2])
+print("Finish reading ENVI data")
 parameters<-read.delim(args[3],sep = " ",header = TRUE)
 YEAR_START<-args[4]
 print("the first year for WaSSI input is:")
@@ -64,7 +65,7 @@ S_long<- parameters[19,1]
 #----------
 
 #---- read each variables
-Pre<-as.vector(da[,,Line_S_PRE:Line_E_PRE)])
+Pre<-as.vector(da[,,Line_S_PRE:Line_E_PRE])
 Temp<-as.vector(da[,,Line_S_TEMP:Line_E_TEMP])
 LAI<-as.vector(da[,,Line_S_LAI:Line_E_LAI])
 LC<-as.vector(da[,,Line_S_LC:Line_E_LC])

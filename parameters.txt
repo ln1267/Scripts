@@ -1,4 +1,4 @@
-value-pameters
+value pameters
 1970 #The-fist-year-of-climate-data
 2013 #The-last-year-of-climate-data
 1982 #The-fist-year-of-LAI-data
