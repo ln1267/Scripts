@@ -20,7 +20,19 @@ library(plyr)
 
 # set the first args as the data location
 setwd(args[1])
+
+if (! dir.exists("INPUTS")){dir.create("INPUTS", showWarnings = TRUE, recursive = FALSE, mode = "0777")}
+
+# load input ENVI data and save it as "data.RData"
+if (file.exists("data.RData")){
+print('loading ENVI data from "data.RData"')
+load("data.RData")
+}else{
+print("read data from original ENVI data")
 da<-read.ENVI(args[2])
+save(da,file="data.RData")
+}
+
 print("Finish reading ENVI data")
 parameters<-read.delim(args[3],sep = " ",header = TRUE)
 YEAR_START<-args[4]
@@ -82,20 +94,24 @@ if  (parameters[20,1]) {
 	Temp<-Temp/10.0}
 if  (parameters[21,1]) { LAI<-LAI/10}
 if  (parameters[22,1]) { LC<-LC/10}
-
 if  (parameters[24,1]) { ALT<-ALT/10}
 
 rm(da)
 gc()
+
 #process climate data------------------------------
 
 Year_C<-rep(c(S_y:E_y), each=nrows*ncols*12)
 ID_C<-rep(c(1:(nrows*ncols)),12*(E_y-S_y+1))
 Month_C<-rep(rep(c(1:12), each=nrows*ncols),E_y-S_y+1)
 data_climate<-data.frame(ID=ID_C,YEAR=Year_C,Month=Month_C,Pre=Pre,Temp=Temp)
-data_climate<-arrange(data_climate,ID,YEAR,Month)
+system.time(
+data_climate<-arrange(data_climate,ID,YEAR,Month))
+# system.time(
+# with(data_climate,data_climate<<-data_climate[order(ID,YEAR,Month),]))
 print(summary(data_climate))
-#write.csv(data_climate,"Inputs/CLIMATE.TXT",sep = ',',row.names = FALSE)
+data_climate<-subset(data_climate,YEAR>=YEAR_START & YEAR<=YEAR_END)
+write.csv(data_climate,"INPUTS/CLIMATE.TXT",sep = ',',row.names = FALSE)
 rm(Year_C,ID_C,Month_C,Pre,Temp)
 gc()
 #------------------------------
@@ -106,7 +122,8 @@ Month_LAI<-rep(rep(c(1:12), each=nrows*ncols),E_y_LAI-S_y_LAI+1)
 data_LAI<-data.frame(ID=ID_LAI,YEAR=Year_LAI,Month=Month_LAI,LAI=LAI)
 data_LAI<-arrange(data_LAI,ID,YEAR,Month)
 print(summary(data_LAI))
-#write.csv(data_LAI,"Inputs/LANDLAI.TXT",sep = ',',row.names = FALSE)
+data_LAI<-subset(data_LAI,YEAR>=YEAR_START & YEAR<=YEAR_END)
+write.csv(data_LAI,"INPUTS/LANDLAI.TXT",sep = ',',row.names = FALSE)
 rm(Year_LAI,ID_LAI,Month_LAI,LAI)
 gc()
 #------------------------------
@@ -114,14 +131,14 @@ gc()
 SOIL<-data.frame(ID=c(1:(nrows*ncols)),UZTWM=as.vector(da[,,S_soil]),UZFWM=as.vector(da[,,S_soil+1]),UZK=as.vector(da[,,S_soil+2]),ZPERC=as.vector(da[,,S_soil+3]),REXP=as.vector(da[,,S_soil+4]),LZTWM=as.vector(da[,,S_soil+5]),LZFSM=as.vector(da[,,S_soil+6]),LZFPM=as.vector(da[,,S_soil+7]),LZSK=as.vector(da[,,S_soil+8]),LZPK=as.vector(da[,,S_soil+9]),PFREE=as.vector(da[,,S_soil+10]))
 print(summary(SOIL))
 if  (parameters[23,1]) { SOIL<-SOIL/10;SOIL$ID<-c(1:(nrows*ncols))}
-#write.csv(SOIL,"Inputs/SOILINFO.TXT",sep = ',',row.names = FALSE)
+write.csv(SOIL,"INPUTS/SOILINFO.TXT",sep = ',',row.names = FALSE)
 #------------------------------
 
 LAT<-rep(seq(S_lat, by=cell_size, length.out = nrows),ncols)
 LONG<-rep(seq(S_long, by=cell_size, length.out = ncols),each=nrows)
 data_cell<-data.frame(ID=c(1:(nrows*ncols)),LAT=LAT,LONG=LONG,VEG=VEG,ALT=ALT)
 print(summary(data_cell))
-#write.csv(data_cell,"Inputs/CELLINFO.TXT",sep = ',',row.names = FALSE)
+write.csv(data_cell,"INPUTS/CELLINFO.TXT",sep = ',',row.names = FALSE)
 #------------------------------
 
 Year_LC<-rep(c(S_y_LC:E_y_LC), each=nrows*ncols)
@@ -129,5 +146,6 @@ ID_LC<-rep(c(1:(nrows*ncols)),(E_y_LC-S_y_LC+1))
 data_LC<-data.frame(ID=ID_LC,YEAR=Year_LC,VEG=LC)
 data_LC<-arrange(data_LC,ID,YEAR)
 print(summary(data_LC))
-#write.csv(data_LC,"Inputs/VEGINFO.TXT",sep = ',',row.names = FALSE)
+data_LC<-subset(data_LC,YEAR>=YEAR_START & YEAR<=YEAR_END)
+write.csv(data_LC,"INPUTS/VEGINFO.TXT",sep = ',',row.names = FALSE)
 rm(Year_LC,ID_LC,LC)
