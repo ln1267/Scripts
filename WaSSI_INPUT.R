@@ -112,6 +112,7 @@ data_climate<-arrange(data_climate,ID,YEAR,Month))
 print(summary(data_climate))
 data_climate<-subset(data_climate,YEAR>=YEAR_START & YEAR<=YEAR_END)
 write.csv(data_climate,"INPUTS/CLIMATE.TXT",sep = ',',row.names = FALSE)
+print("Finish climate data")
 rm(Year_C,ID_C,Month_C,Pre,Temp)
 gc()
 #------------------------------
@@ -124,6 +125,7 @@ data_LAI<-arrange(data_LAI,ID,YEAR,Month)
 print(summary(data_LAI))
 data_LAI<-subset(data_LAI,YEAR>=YEAR_START & YEAR<=YEAR_END)
 write.csv(data_LAI,"INPUTS/LANDLAI.TXT",sep = ',',row.names = FALSE)
+print("Finish LAI data")
 rm(Year_LAI,ID_LAI,Month_LAI,LAI)
 gc()
 #------------------------------
@@ -132,6 +134,7 @@ SOIL<-data.frame(ID=c(1:(nrows*ncols)),UZTWM=as.vector(da[,,S_soil]),UZFWM=as.ve
 print(summary(SOIL))
 if  (parameters[23,1]) { SOIL<-SOIL/10;SOIL$ID<-c(1:(nrows*ncols))}
 write.csv(SOIL,"INPUTS/SOILINFO.TXT",sep = ',',row.names = FALSE)
+print("Finish SOILinfo data")
 #------------------------------
 
 LAT<-rep(seq(S_lat, by=cell_size, length.out = nrows),ncols)
@@ -139,6 +142,7 @@ LONG<-rep(seq(S_long, by=cell_size, length.out = ncols),each=nrows)
 data_cell<-data.frame(ID=c(1:(nrows*ncols)),LAT=LAT,LONG=LONG,VEG=VEG,ALT=ALT)
 print(summary(data_cell))
 write.csv(data_cell,"INPUTS/CELLINFO.TXT",sep = ',',row.names = FALSE)
+print("Finish cell info data")
 #------------------------------
 
 Year_LC<-rep(c(S_y_LC:E_y_LC), each=nrows*ncols)
@@ -148,4 +152,5 @@ data_LC<-arrange(data_LC,ID,YEAR)
 print(summary(data_LC))
 data_LC<-subset(data_LC,YEAR>=YEAR_START & YEAR<=YEAR_END)
 write.csv(data_LC,"INPUTS/VEGINFO.TXT",sep = ',',row.names = FALSE)
+print("Finish LUCC data")
 rm(Year_LC,ID_LC,LC)
