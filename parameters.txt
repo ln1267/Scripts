@@ -1,0 +1,25 @@
+value pameters
+1970 #S_y
+2013 #E_y<-
+1982 #S_y_LAI
+2013 #E_y_LAI
+2001 #S_y_LC
+2012 #E_y_LC
+1 #Line_DEM<-
+529 #Line_S_PRE<-
+2 #Line_E_PRE<-
+1057 #Line_S_TEMP<-
+530 #Line_E_TEMP<-
+1453 #Line_S_LAI<-
+1058 #Line_E_LAI<-
+1465 #Line_S_LC<-
+1454 #Line_E_LC<-
+1466 #Line_S_SOIL<- 
+-25.495 #S_lat<--
+0.05 #cell_size<-
+116 #S_long<-
+1 #transefer by dividing 10 for climate data
+1 #transefer by dividing 10 for LAI data
+0 #transefer by dividing 10 for LC data
+0 #transefer by dividing 10 for SOIL data
+0 #transefer by dividing 10 for ALT data
