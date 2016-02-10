@@ -35,7 +35,10 @@ print(parameters)
 # read rows and cols of the study area
 nrows<-nrow(da)
 ncols<-ncol(da)
-
+print("nrows=")
+print(nrows)
+print("ncols=")
+print(ncols)
 # set default parameters for data processing
 ## set the start and end year of input data for climate, LAI and land cover data
 S_y<-parameters[1,1]
@@ -65,6 +68,7 @@ S_long<- parameters[19,1]
 #----------
 
 #---- read each variables
+print("read variables from ENVI data")
 Pre<-as.vector(da[,,Line_S_PRE:Line_E_PRE])
 Temp<-as.vector(da[,,Line_S_TEMP:Line_E_TEMP])
 LAI<-as.vector(da[,,Line_S_LAI:Line_E_LAI])
@@ -90,7 +94,7 @@ ID_C<-rep(c(1:(nrows*ncols)),12*(E_y-S_y+1))
 Month_C<-rep(rep(c(1:12), each=nrows*ncols),E_y-S_y+1)
 data_climate<-data.frame(ID=ID_C,YEAR=Year_C,Month=Month_C,Pre=Pre,Temp=Temp)
 data_climate<-arrange(data_climate,ID,YEAR,Month)
-summary(data_climate)
+print(summary(data_climate))
 #write.csv(data_climate,"Inputs/CLIMATE.TXT",sep = ',',row.names = FALSE)
 rm(Year_C,ID_C,Month_C,Pre,Temp)
 gc()
@@ -101,14 +105,14 @@ ID_LAI<-rep(c(1:(nrows*ncols)),12*(E_y_LAI-S_y_LAI+1))
 Month_LAI<-rep(rep(c(1:12), each=nrows*ncols),E_y_LAI-S_y_LAI+1)
 data_LAI<-data.frame(ID=ID_LAI,YEAR=Year_LAI,Month=Month_LAI,LAI=LAI)
 data_LAI<-arrange(data_LAI,ID,YEAR,Month)
-summary(data_LAI)
+print(summary(data_LAI))
 #write.csv(data_LAI,"Inputs/LANDLAI.TXT",sep = ',',row.names = FALSE)
 rm(Year_LAI,ID_LAI,Month_LAI,LAI)
 gc()
 #------------------------------
 
 SOIL<-data.frame(ID=c(1:(nrows*ncols)),UZTWM=as.vector(da[,,S_soil]),UZFWM=as.vector(da[,,S_soil+1]),UZK=as.vector(da[,,S_soil+2]),ZPERC=as.vector(da[,,S_soil+3]),REXP=as.vector(da[,,S_soil+4]),LZTWM=as.vector(da[,,S_soil+5]),LZFSM=as.vector(da[,,S_soil+6]),LZFPM=as.vector(da[,,S_soil+7]),LZSK=as.vector(da[,,S_soil+8]),LZPK=as.vector(da[,,S_soil+9]),PFREE=as.vector(da[,,S_soil+10]))
-summary(SOIL)
+print(summary(SOIL))
 if  (parameters[23,1]) { SOIL<-SOIL/10;SOIL$ID<-c(1:(nrows*ncols))}
 #write.csv(SOIL,"Inputs/SOILINFO.TXT",sep = ',',row.names = FALSE)
 #------------------------------
@@ -116,7 +120,7 @@ if  (parameters[23,1]) { SOIL<-SOIL/10;SOIL$ID<-c(1:(nrows*ncols))}
 LAT<-rep(seq(S_lat, by=cell_size, length.out = nrows),ncols)
 LONG<-rep(seq(S_long, by=cell_size, length.out = ncols),each=nrows)
 data_cell<-data.frame(ID=c(1:(nrows*ncols)),LAT=LAT,LONG=LONG,VEG=VEG,ALT=ALT)
-summary(data_cell)
+print(summary(data_cell))
 #write.csv(data_cell,"Inputs/CELLINFO.TXT",sep = ',',row.names = FALSE)
 #------------------------------
 
@@ -124,6 +128,6 @@ Year_LC<-rep(c(S_y_LC:E_y_LC), each=nrows*ncols)
 ID_LC<-rep(c(1:(nrows*ncols)),(E_y_LC-S_y_LC+1))
 data_LC<-data.frame(ID=ID_LC,YEAR=Year_LC,VEG=LC)
 data_LC<-arrange(data_LC,ID,YEAR)
-summary(data_LC)
+print(summary(data_LC))
 #write.csv(data_LC,"Inputs/VEGINFO.TXT",sep = ',',row.names = FALSE)
 rm(Year_LC,ID_LC,LC)

@@ -15,9 +15,9 @@ value pameters
 1465 #The-first-Line-of-LC-data-in-input-ENVI-data
 1454 #The-last-Line-of-LC-data-in-input-ENVI-data
 1466 #The-first-Line-of-SOIL-data-in-input-ENVI-data
--25.495 #The-latitude-of-left-up-pixel
+-9.995 #The-latitude-of-left-up-pixel
 0.05 #the-pixel-size
-116 #The-longitude-of-left-up-pixel
+112.5 #The-longitude-of-left-up-pixel
 1 #transefer-by-dividing-10-for-climate-data
 1 #transefer-by-dividing-10-for-LAI-data
 0 #transefer-by-dividing-10-for-LC-data
