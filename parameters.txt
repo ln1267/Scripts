@@ -2,7 +2,7 @@ value pameters
 1970 #The-fist-year-of-climate-data
 2013 #The-last-year-of-climate-data
 1982 #The-fist-year-of-LAI-data
-2013 #The-last-year-of-LAI-data
+2014 #The-last-year-of-LAI-data
 2001 #The-fist-year-of-MODIS-Land-cover-data
 2012 #The-last-year-of-MODIS-Land-cover-data
 1 #The-Line-of-DEM-data-in-input-ENVI-data

@@ -114,7 +114,7 @@ data_climate<-subset(data_climate,YEAR>=YEAR_START & YEAR<=YEAR_END)
 write.csv(data_climate,"INPUTS/CLIMATE.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
 print("Finish climate data")
 rm(Year_C,ID_C,Month_C,Pre,Temp)
-gc()
+#gc()
 #------------------------------
 
 Year_LAI<-rep(c(S_y_LAI:E_y_LAI), each=nrows*ncols*12)
@@ -127,7 +127,7 @@ data_LAI<-subset(data_LAI,YEAR>=YEAR_START & YEAR<=YEAR_END)
 write.csv(data_LAI,"INPUTS/LANDLAI.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
 print("Finish LAI data")
 rm(Year_LAI,ID_LAI,Month_LAI,LAI)
-gc()
+#gc()
 #------------------------------
 
 SOIL<-data.frame(ID=c(1:(nrows*ncols)),UZTWM=as.vector(da[,,S_soil]),UZFWM=as.vector(da[,,S_soil+1]),UZK=as.vector(da[,,S_soil+2]),ZPERC=as.vector(da[,,S_soil+3]),REXP=as.vector(da[,,S_soil+4]),LZTWM=as.vector(da[,,S_soil+5]),LZFSM=as.vector(da[,,S_soil+6]),LZFPM=as.vector(da[,,S_soil+7]),LZSK=as.vector(da[,,S_soil+8]),LZPK=as.vector(da[,,S_soil+9]),PFREE=as.vector(da[,,S_soil+10]))
