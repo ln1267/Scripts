@@ -1,25 +1,25 @@
-value pameters
-1970 #S_y
-2013 #E_y<-
-1982 #S_y_LAI
-2013 #E_y_LAI
-2001 #S_y_LC
-2012 #E_y_LC
-1 #Line_DEM<-
-529 #Line_S_PRE<-
-2 #Line_E_PRE<-
-1057 #Line_S_TEMP<-
-530 #Line_E_TEMP<-
-1453 #Line_S_LAI<-
-1058 #Line_E_LAI<-
-1465 #Line_S_LC<-
-1454 #Line_E_LC<-
-1466 #Line_S_SOIL<- 
--25.495 #S_lat<--
-0.05 #cell_size<-
-116 #S_long<-
-1 #transefer by dividing 10 for climate data
-1 #transefer by dividing 10 for LAI data
-0 #transefer by dividing 10 for LC data
-0 #transefer by dividing 10 for SOIL data
-0 #transefer by dividing 10 for ALT data
+value-pameters
+1970 #The-fist-year-of-climate-data
+2013 #The-last-year-of-climate-data
+1982 #The-fist-year-of-LAI-data
+2013 #The-last-year-of-LAI-data
+2001 #The-fist-year-of-MODIS-Land-cover-data
+2012 #The-last-year-of-MODIS-Land-cover-data
+1 #The-Line-of-DEM-data-in-input-ENVI-data
+529 #The-first-Line-of-pre-data-in-input-ENVI-data
+2 #The-last-Line-of-pre-data-in-input-ENVI-data
+1057 #The-first-Line-of-temp-data-in-input-ENVI-data
+530 #The-last-Line-of-temp-data-in-input-ENVI-data
+1453 #The-first-Line-of-LAI-data-in-input-ENVI-data
+1058 #The-last-Line-of-LAI-data-in-input-ENVI-data
+1465 #The-first-Line-of-LC-data-in-input-ENVI-data
+1454 #The-last-Line-of-LC-data-in-input-ENVI-data
+1466 #The-first-Line-of-SOIL-data-in-input-ENVI-data
+-25.495 #The-latitude-of-left-up-pixel
+0.05 #the-pixel-size
+116 #The-longitude-of-left-up-pixel
+1 #transefer-by-dividing-10-for-climate-data
+1 #transefer-by-dividing-10-for-LAI-data
+0 #transefer-by-dividing-10-for-LC-data
+0 #transefer-by-dividing-10-for-SOIL-data
+0 #transefer-by-dividing-10-for-ALT-data
