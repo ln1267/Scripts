@@ -84,6 +84,7 @@ print("read variables from ENVI data")
 Pre<-as.vector(da[,,Line_S_PRE:Line_E_PRE])
 Temp<-as.vector(da[,,Line_S_TEMP:Line_E_TEMP])
 LAI<-as.vector(da[,,Line_S_LAI:Line_E_LAI])
+LAI[LAI>=130]<-0 
 LC<-as.vector(da[,,Line_S_LC:Line_E_LC])
 S_soil<-Line_S_SOIL
 VEG<-as.vector(da[,,Line_S_LC-2])
@@ -92,9 +93,9 @@ ALT<-as.vector(da[,,Line_DEM])
 if  (parameters[20,1]) { 
 	Pre<-Pre/10.0
 	Temp<-Temp/10.0}
-if  (parameters[21,1]) { LAI<-LAI/10}
-if  (parameters[22,1]) { LC<-LC/10}
-if  (parameters[24,1]) { ALT<-ALT/10}
+if  (parameters[21,1]) { LAI<-LAI/10.0}
+if  (parameters[22,1]) { LC<-LC/10.0}
+if  (parameters[24,1]) { ALT<-ALT/10.0}
 
 rm(da)
 gc()
