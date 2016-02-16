@@ -97,8 +97,8 @@ if  (parameters[21,1]) { LAI<-LAI/10.0}
 if  (parameters[22,1]) { LC<-LC/10.0}
 if  (parameters[24,1]) { ALT<-ALT/10.0}
 
-rm(da)
-gc()
+#rm(da)
+#gc()
 
 #process climate data------------------------------
 
@@ -112,7 +112,7 @@ data_climate<-arrange(data_climate,ID,YEAR,Month))
 # with(data_climate,data_climate<<-data_climate[order(ID,YEAR,Month),]))
 print(summary(data_climate))
 data_climate<-subset(data_climate,YEAR>=YEAR_START & YEAR<=YEAR_END)
-write.csv(data_climate,"INPUTS/CLIMATE.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
+write.table(data_climate,"INPUTS/CLIMATE.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
 print("Finish climate data")
 rm(Year_C,ID_C,Month_C,Pre,Temp)
 #gc()
@@ -125,7 +125,7 @@ data_LAI<-data.frame(ID=ID_LAI,YEAR=Year_LAI,Month=Month_LAI,LAI=LAI)
 data_LAI<-arrange(data_LAI,ID,YEAR,Month)
 print(summary(data_LAI))
 data_LAI<-subset(data_LAI,YEAR>=YEAR_START & YEAR<=YEAR_END)
-write.csv(data_LAI,"INPUTS/LANDLAI.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
+write.table(data_LAI,"INPUTS/LANDLAI.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
 print("Finish LAI data")
 rm(Year_LAI,ID_LAI,Month_LAI,LAI)
 #gc()
@@ -133,16 +133,17 @@ rm(Year_LAI,ID_LAI,Month_LAI,LAI)
 
 SOIL<-data.frame(ID=c(1:(nrows*ncols)),UZTWM=as.vector(da[,,S_soil]),UZFWM=as.vector(da[,,S_soil+1]),UZK=as.vector(da[,,S_soil+2]),ZPERC=as.vector(da[,,S_soil+3]),REXP=as.vector(da[,,S_soil+4]),LZTWM=as.vector(da[,,S_soil+5]),LZFSM=as.vector(da[,,S_soil+6]),LZFPM=as.vector(da[,,S_soil+7]),LZSK=as.vector(da[,,S_soil+8]),LZPK=as.vector(da[,,S_soil+9]),PFREE=as.vector(da[,,S_soil+10]))
 print(summary(SOIL))
+for ( i in 2:12){ SOIL[[i]][is.na(SOIL[[i]])]<- -999}
 if  (parameters[23,1]) { SOIL<-SOIL/10;SOIL$ID<-c(1:(nrows*ncols))}
-write.csv(SOIL,"INPUTS/SOILINFO.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
+write.table(SOIL,"INPUTS/SOILINFO.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
 print("Finish SOILinfo data")
 #------------------------------
 
-LAT<-rep(seq(S_lat, by=cell_size, length.out = nrows),ncols)
+LAT<-rep(seq(S_lat, by=-cell_size, length.out = nrows),ncols)
 LONG<-rep(seq(S_long, by=cell_size, length.out = ncols),each=nrows)
 data_cell<-data.frame(ID=c(1:(nrows*ncols)),LAT=LAT,LONG=LONG,VEG=VEG,ALT=ALT)
 print(summary(data_cell))
-write.csv(data_cell,"INPUTS/CELLINFO.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
+write.table(data_cell,"INPUTS/CELLINFO.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
 print("Finish cell info data")
 #------------------------------
 
@@ -152,6 +153,7 @@ data_LC<-data.frame(ID=ID_LC,YEAR=Year_LC,VEG=LC)
 data_LC<-arrange(data_LC,ID,YEAR)
 print(summary(data_LC))
 data_LC<-subset(data_LC,YEAR>=YEAR_START & YEAR<=YEAR_END)
-write.csv(data_LC,"INPUTS/VEGINFO.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
+write.table(data_LC,"INPUTS/VEGINFO.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
 print("Finish LUCC data")
 rm(Year_LC,ID_LC,LC)
+print("finsh data process")
