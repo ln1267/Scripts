@@ -47,12 +47,12 @@ RESULT<-lapply(filenames, read.delim,header = FALSE, sep = ",")
 names(RESULT)<-sapply(substr(.a,1,nchar(.a)-4),"[",1)
 
 ## name variables for each framedata
-names(RESULT[["ANNUALFLOW"]])<-c("ID","YEAR","PRE","PET","AET","Sun_ET","RUNOFF","RUN_Pratio","ET_Pratio","RUN_ETRatio","SNWPCKMON","RFACTOR")
+names(RESULT[["ANNUALFLOW"]])<-c("ID","YEAR","PRE","PET","AET","SUN_ET","RUNOFF","Q_P","ET_P","Q_ET","SNWPCKMON","RFACTOR")
 names(RESULT[["ANNUALCARBON"]])<-c("ID","YEAR","GEP","RECO","NEE")
 names(RESULT[["HUCFLOW"]])<-c("ID","PRE","PET","AET","RUNOFF","Q_P","ET_P","Q_ET_P","N_Y")
 names(RESULT[["HUCCARBON"]])<-c("ID","N_Y","GEP","RECO","NEE")
-names(RESULT[["MONTHFLOW"]])<-c("ID","YEAR","MONTH","PRE","TEMP","SMC","SNWPK","PET","AET","Sun_ET","RUNOFF","BASEFLOW","FLOWMCMMon")
-names(RESULT[["MONTHCARBON"]])<-c("ID","YEAR","MONTH","GEP","REO","NEE")
+names(RESULT[["MONTHFLOW"]])<-c("ID","YEAR","MONTH","PRE","TEMP","SMC","SNWPK","PET","AET","SUN_ET","RUNOFF","BASEFLOW","FLOWMCMMon")
+names(RESULT[["MONTHCARBON"]])<-c("ID","YEAR","MONTH","GEP","RECO","NEE")
 
 save(RESULT,file = "R_result/RESULT.RData")
 
