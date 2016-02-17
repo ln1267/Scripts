@@ -24,19 +24,29 @@ setwd(args[1])
 if (! dir.exists("R_result")){dir.create("R_result", showWarnings = TRUE, recursive = FALSE, mode = "0777")}
 
 # load outputs data and save it as "R_result/RESULT.RData"
+## if this file already exist 
 if (file.exists("R_result/RESULT.RData")){
-print('loading outputs data from "R_result/RESULT.RData"')
-load("R_result/RESULT.RData")
-}else{
-print("read data from original outputs data")
 
+print('loading outputs data from R_result/RESULT.RData')
+load("R_result/RESULT.RData")
+print(str(RESULT))
+}else{
+
+print("read data from original outputs data")
+## get names for all the file
 name_dir<-dir(path=".",include.dirs=TRUE,all.files =TRUE,pattern = "*.TXT",full.names = TRUE)
 filenames<-name_dir[c(1,2,3,4,5,6)]
 
+## read all result files to a list called RESULT, each of this file was stored as a framedata in the list
 RESULT<-lapply(filenames, read.delim,header = FALSE, sep = ",")
+
+## get the name for each file and give the variable name to the list data
 .a<-sapply(strsplit(filenames,"/"),"[",length(strsplit(filenames, "/")[[1]]))
+
+## name each framedata in list
 names(RESULT)<-sapply(substr(.a,1,nchar(.a)-4),"[",1)
 
+## name variables for each framedata
 names(RESULT[["ANNUALFLOW"]])<-c("ID","YEAR","PRE","PET","AET","Sun_ET","RUNOFF","RUN_Pratio","ET_Pratio","RUN_ETRatio","SNWPCKMON","RFACTOR")
 names(RESULT[["ANNUALCARBON"]])<-c("ID","YEAR","GEP","RECO","NEE")
 names(RESULT[["HUCFLOW"]])<-c("ID","PRE","PET","AET","RUNOFF","Q_P","ET_P","Q_ET_P","N_Y")
@@ -44,22 +54,18 @@ names(RESULT[["HUCCARBON"]])<-c("ID","N_Y","GEP","RECO","NEE")
 names(RESULT[["MONTHFLOW"]])<-c("ID","YEAR","MONTH","PRE","TEMP","SMC","SNWPK","PET","AET","Sun_ET","RUNOFF","BASEFLOW","FLOWMCMMon")
 names(RESULT[["MONTHCARBON"]])<-c("ID","YEAR","MONTH","GEP","REO","NEE")
 
-
 save(RESULT,file = "R_result/RESULT.RData")
+
+print(str(RESULT))
 print("Saved Result to R_result/RESULT.RData")
 }
 
-
+if (0){
 load("RESULT_MJ_LCMerge.RData")
 load("Carbon_ann_MJ.RData")
 load("Carbon_ann_MJ_LCmerge.RData")
 Carbon_ann_LC_merge<-Carbon_ann
 
-
-
-da<-read.ENVI(args[2])
-save(da,file="data.RData")
-}
 
 print("Finish reading ENVI data")
 parameters<-read.delim(args[3],sep = " ",header = TRUE)
@@ -185,3 +191,4 @@ write.table(data_LC,"INPUTS/VEGINFO.TXT",sep = ',',row.names = FALSE,col.names=F
 print("Finish LUCC data")
 rm(Year_LC,ID_LC,LC)
 print("finsh data process")
+}
