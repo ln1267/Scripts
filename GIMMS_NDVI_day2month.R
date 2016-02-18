@@ -24,8 +24,8 @@ setwd(args[1])
 print(args)
 
 # read input NDVI and NDVI_flag data
-NDVI<-read.ENVI("ASIAN_NDVI")
-NDVI_flag<-read.ENVI("ASIAN_NDVI_flag")
+NDVI<-read.ENVI("ASIAN_NDVI_16days")
+NDVI_flag<-read.ENVI("ASIAN_NDVI_flag_16days")
 
 print("NDVI and NDVI_flag dim")
 print(dim(NDVI))
@@ -41,9 +41,10 @@ if (1){
 	cl<-makeCluster(detectCores()-1)  # set up parallel
 	#clusterEvalQ(cl, library(rms)) # load required packages
 	clusterExport(cl,c("NDVI","NDVI_flag"))    # share default data for all threads
-
-	if (length(integer(args[4]))){
-	
+	print("num of Cores")
+	print(detectCores()-1)
+	if (! length(integer(args[4]))){
+		print("process data without flag data")	
 		f_NDVI<-function(n){
 		new<-new.env()
 		new<-apply(NDVI[,,n:n+1],c(1,2),max)
@@ -53,10 +54,11 @@ if (1){
 		tr<-parLapply(cl,seq(1,312,2),f_NDVI) # using parLapply to simulate data in parallel way
 		NDVI_new<-array(unlist(tr), dim = c(nrow(tr[[1]]), ncol(tr[[1]]), length(tr)))
 		print(dim(NDVI_new))
-		write.ENVI(NDVI_new,"GMMIS_NDVI_mon_flag")
+		write.ENVI(NDVI_new,"GMMIS_NDVI_mon_noflag")
 		stopCluster(cl)
 
 	}else{
+		print("process data with flag data")
 		f_NDVI<-function(n){
 		new<-new.env()
 		new<-apply(NDVI[,,n:n+1],c(1,2),max)
@@ -82,7 +84,7 @@ if (1){
 		# if return is a matrix, transfer list to array
 		NDVI_new<-array(unlist(tr), dim = c(nrow(tr[[1]]), ncol(tr[[1]]), length(tr)))
 		print(dim(NDVI_new))
-		write.ENVI(NDVI_new,"GMMIS_NDVI_mon_noflag")
+		write.ENVI(NDVI_new,"GMMIS_NDVI_mon_flag")
 		stopCluster(cl)
 		
 	}
