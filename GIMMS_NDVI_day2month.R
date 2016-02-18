@@ -3,7 +3,8 @@ print("Starting to process")
 #------------------
 	## this Rscript is used for transfering GIMMS NDVI 16 days to monthly data based on it's flag data
 	## the original data was obtained from https://nex.nasa.gov/nex/projects/1349/wiki/general_data_description_and_access/
-#---------------
+	## flag: 1,2 -- good; 3-6 --- interplote; 7 - missing.
+	#---------------
 
 #---------
 	## read required parameters for R script
@@ -24,8 +25,8 @@ setwd(args[1])
 print(args)
 
 # read input NDVI and NDVI_flag data
-NDVI<-read.ENVI("ASIAN_NDVI_16days")
-NDVI_flag<-read.ENVI("ASIAN_NDVI_flag_16days")
+NDVI<-read.ENVI("ASIAN_NDVI")
+NDVI_flag<-read.ENVI("ASIAN_NDVI_flag")
 
 print("NDVI and NDVI_flag dim")
 print(dim(NDVI))

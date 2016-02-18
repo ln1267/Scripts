@@ -17,28 +17,6 @@ return(new)
 }
 
 
-f_NDVI<-function(n){
-new<-new.env()
-new<-apply(NDVI[,,n:n+1],c(1,2),max)
-
-flag_1<-which(NDVI_flag[,,n]<=2 & NDVI_flag[,,n+1]<=2)
-flag_2<-which(NDVI_flag[,,n]<=2 & NDVI_flag[,,n+1]>2)
-flag_3<-which(NDVI_flag[,,n]>2 & NDVI_flag[,,n+1]<=2)
-flag_4<-which(NDVI_flag[,,n]>2 & NDVI_flag[,,n]<7 & NDVI_flag[,,n+1]>2 & NDVI_flag[,,n+1]<7)
-flag_5<-which(NDVI_flag[,,n]>2 & NDVI_flag[,,n]<7  & NDVI_flag[,,n+1]==2)
-flag_6<-which(NDVI_flag[,,n]==7 & NDVI_flag[,,n+1]>2 & NDVI_flag[,,n+1]<7)
-flag_7<-which(NDVI_flag[,,n]==7 & NDVI_flag[,,n+1]==7)
-		
-#NDVI_new[,,(n+1)/2][flag_1 | flag_4]
-new[flag_2 | flag_5]<- NDVI[,,n][flag_2| flag_5]
-new[flag_3 | flag_6]<- NDVI[,,n+1][flag_3 | flag_6]
-new[flag_7]<- -1
-return(new)
-#NDVI_new[,,(n+1)/2]<-apply(NDVI[,,n:n+1],c(1,2),max)
-}
-
-
-
 ##---- doParallel way
 
 library(doParallel)
