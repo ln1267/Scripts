@@ -35,7 +35,7 @@ print(dim(NDVI_new))
 
 # process monthly data from 16days data
 
-if (args[4]){
+if (length(integer(args[4]))){
 	## Process 16days to monthly data using flag data
 	print("Start to process data with flag data")
 	n<-1
