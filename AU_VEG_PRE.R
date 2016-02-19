@@ -70,6 +70,22 @@ for (i in c(1:length(list))){
 #	}else{	a<-summary(get(list[i]))}
 #	write.table(a,file=info_file,row.names = FALSE,append=TRUE)
   }
+  
+# functions---------  
+## summary funtion which can output summary information for all objects 
+f_summary<-function(){
+	print("print info for all objects")
+	list=ls()
+	for (i in c(1:length(list))){
+		if ( is.data.frame(get(list[i]))){
+		print(list[i])
+		str(get(list[i]))
+		print(summary.data.frame(get(list[i])))
+		}
+  }
+
+}  
+  
 ## merge NDVI data and save data
 if (file.exits(NDVI_mon_82_13.RData)){
 	print("load NDVI data")
@@ -97,21 +113,25 @@ SM_ann_frame<-arrange(SM_ann_frame,ID,YEAR)
 ## calculte annual NDVI
 .linshi<-melt(NDVI_mon_82_13,id=c(1,2,3))
 NDVI_ann_82_13<-dcast(.linshi,ID+YEAR~variable,mean,na.rm=TRUE)  
-str(NDVI_ann_82_13)
-print(summary(NDVI_ann_82_13))
+#str(NDVI_ann_82_13)
+#print(summary(NDVI_ann_82_13))
 ## calculte annual PRE
 .linshi<-melt(climate_mon_frame_70_13[1:4],id=c(1,2,3))
 PRE_ann_70_13<-dcast(.linshi,ID+YEAR~variable,sum,na.rm=TRUE) 
-str(PRE_ann_70_13)
-print(summary(PRE_ann_70_13))
+#str(PRE_ann_70_13)
+#print(summary(PRE_ann_70_13))
+
 ##------here is for omitting missing and abnormal data 
 climate_mon_frame_70_13$Temp[climate_mon_frame_70_13$Temp< -20]<-NA
 
 ## calculte annual PRE
 .linshi<-melt(climate_mon_frame_70_13[c(1:3,5)],id=c(1,2,3))
 Temp_ann_70_13<-dcast(.linshi,ID+YEAR~variable,mean,na.rm=TRUE) 
-str(Temp_ann_70_13)
-print(summary(Temp_ann_70_13))
+#str(Temp_ann_70_13)
+#print(summary(Temp_ann_70_13))
+
+## output summary infos of all variables
+f_summary()
 
 
 
