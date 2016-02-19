@@ -39,7 +39,7 @@ list=ls()
 print(list)
 ## print summary for all data bases
 info_file="info/summary.txt"
-
+file.create(info_file)
 for (i in c(1:length(list))){
   write(list[i],file=info_file,append=TRUE)
   write(str(get(list[i])),file=info_file,append=TRUE)
