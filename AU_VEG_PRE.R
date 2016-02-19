@@ -26,7 +26,7 @@ setwd(args[1])
 
 ## process GIMMS NDVI data
 if (! file.exists("NDVI_GIMMS_82_94_frame.RData")){
-
+print("read GIMMS NDVI from original ENVI Data")
 ENVI_GIMMS_NDVI<-read.ENVI("NDVI_AU_GIMMS_94_82_flag_5km")
 
 NDVI_GIMMS_82_94_frame<-data.frame(ID=c(1:(dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2])),YEAR=rep(c(1994:1982),each=12*dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2]),MONTH=rep(rep(c(9,10,11,5,3,6,7,1,2,12,8,4),13),each=dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2]),NDVI=as.vector(ENVI_GIMMS_NDVI))
@@ -49,7 +49,9 @@ print('loading existing data bases')
 filenames<-dir(path=".",include.dirs=TRUE,all.files =TRUE,pattern = "*.RData",full.names = TRUE)
 
 ## read all result files to a list called RESULT, each of this file was stored as a framedata in the list
-for (i in c(1:length(filenames))){load(filenames[i])}
+for (i in c(1:length(filenames))){
+load(filenames[i])
+print(mem_used())}
 list=ls()
 print(list)
 
@@ -60,7 +62,13 @@ file.create(info_file)
 for (i in c(1:length(list))){
   write(paste("object name=",list[i]),file=info_file,append=TRUE)
   write(paste("object dim= \n",dim(get(list[i]))),file=info_file,append=TRUE)
-  write(summary.data.frame(get(list[i])),file=info_file,append=TRUE)
+  write(summary(get(list[i])),file=info_file,append=TRUE)
+  print(list[i])
+  str(get(list[i]))
+#	if (is.data.frame(get(list[i]))){
+#	a<-summary.data.frame(get(list[i]))
+#	}else{	a<-summary(get(list[i]))}
+#	write.table(a,file=info_file,row.names = FALSE,append=TRUE)
   }
 
   
