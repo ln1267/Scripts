@@ -37,8 +37,17 @@ filenames<-dir(path=".",include.dirs=TRUE,all.files =TRUE,pattern = "*.RData",fu
 for (i in c(1:length(filenames))){load(filenames[i])}
 list=ls()
 print(list)
+## print summary for all data bases
+info_file="info/summary.txt"
 
+for (i in c(1:length(list))){
+  write(list[i],file=info_file,append=TRUE)
+  write(str(get(list[i])),file=info_file,append=TRUE)
+  write(summary(get(list[i])),file=info_file,append=TRUE)
+  }
 
+  
+  
 if (0){
 load("RESULT_MJ_LCMerge.RData")
 load("Carbon_ann_MJ.RData")
