@@ -70,9 +70,51 @@ for (i in c(1:length(list))){
 #	}else{	a<-summary(get(list[i]))}
 #	write.table(a,file=info_file,row.names = FALSE,append=TRUE)
   }
+## merge NDVI data and save data
+if (file.exits(NDVI_mon_82_13.RData)){
+	print("load NDVI data")
+	}else{
+	names(NDVI_GIMMS_82_94_frame)[3]<-"Month"
+	names(NDVI_GIMMS_82_94_frame)[4]<-"NDVI"
+	names(NDVI_NAHH_mon_frame)[4]<-"NDVI"
+	NDVI_mon_82_13<-rbind(NDVI_GIMMS_82_94_frame,NDVI_NAHH_mon_frame)
+	NDVI_mon_82_13$NDVI[NDVI_mon_82_13$NDVI<0]<-NA
+	save(NDVI_mon_82_13,file="NDVI_mon_82_13.RData")
+	}
 
-  
-  
+rm(data_climate,NDVI_GIMMS_82_94_frame,NDVI_NAHH_mon_frame,NDVI_NAHH_ann_frame_95_13)
+	
+## rearrange all data by ID, YEAR, MONTH
+climate_mon_frame_70_13<-arrange(climate_mon_frame_70_13,ID,YEAR,Month)
+#data_climate<-arrange(data_climate,ID,YEAR,Month)
+NDVI_mon_82_13<-arrange(NDVI_mon_82_13,ID,YEAR,Month)
+LAI_ann_frame_82_13<-arrange(LAI_ann_frame_82_13,ID,YEAR)
+LAI_mon_frame_82_13<-arrange(LAI_mon_frame_82_13,ID,YEAR,Month)
+sm_awap_ann_70_13<-arrange(sm_awap_ann_70_13,ID,YEAR)
+SM_mon_frame<-arrange(SM_mon_frame,ID,YEAR,Month)
+SM_ann_frame<-arrange(SM_ann_frame,ID,YEAR)
+
+## calculte annual NDVI
+.linshi<-melt(NDVI_mon_82_13,id=c(1,2,3))
+NDVI_ann_82_13<-dcast(.linshi,ID+YEAR~variable,mean,na.rm=TRUE)  
+str(NDVI_ann_82_13)
+print(summary(NDVI_ann_82_13))
+## calculte annual PRE
+.linshi<-melt(climate_mon_frame_70_13[1:4],id=c(1,2,3))
+PRE_ann_70_13<-dcast(.linshi,ID+YEAR~variable,sum,na.rm=TRUE) 
+str(PRE_ann_70_13)
+print(summary(PRE_ann_70_13))
+##------here is for omitting missing and abnormal data 
+climate_mon_frame_70_13$Temp[climate_mon_frame_70_13$Temp< -20]<-NA
+
+## calculte annual PRE
+.linshi<-melt(climate_mon_frame_70_13[c(1:3,5)],id=c(1,2,3))
+Temp_ann_70_13<-dcast(.linshi,ID+YEAR~variable,mean,na.rm=TRUE) 
+str(Temp_ann_70_13)
+print(summary(Temp_ann_70_13))
+
+
+
 if (0){
 load("RESULT_MJ_LCMerge.RData")
 load("Carbon_ann_MJ.RData")
