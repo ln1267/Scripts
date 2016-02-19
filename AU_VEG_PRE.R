@@ -31,7 +31,7 @@ ENVI_GIMMS_NDVI<-read.ENVI("NDVI_AU_GIMMS_94_82_flag_5km")
 
 NDVI_GIMMS_82_94_frame<-data.frame(ID=c(1:(dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2])),YEAR=rep(c(1994:1982),each=12*dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2]),MONTH=rep(rep(c(9,10,11,5,3,6,7,1,2,12,8,4),13),each=dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2]),NDVI=as.vector(ENVI_GIMMS_NDVI))
 
-NDVI_GIMMS_82_94_frame<-arrange(NDVI_GIMMS_82_94_frame,ID,YEAR,MOTH)
+NDVI_GIMMS_82_94_frame<-arrange(NDVI_GIMMS_82_94_frame,ID,YEAR,MONTH)
 
 save(NDVI_GIMMS_82_94_frame,file="NDVI_GIMMS_82_94_frame.RData")
 }
@@ -58,9 +58,9 @@ info_file="infos/summary.txt"
 file.create(info_file)
 
 for (i in c(1:length(list))){
-  write(list[i],file=info_file,append=TRUE)
-  write(str(get(list[i])),file=info_file,append=TRUE)
-  write(summary(get(list[i])),file=info_file,append=TRUE)
+  write(paste("object name=",list[i]),file=info_file,append=TRUE)
+  write(paste("object dim= \n",dim(get(list[i]))),file=info_file,append=TRUE)
+  write(summary.data.frame(get(list[i])),file=info_file,append=TRUE)
   }
 
   
