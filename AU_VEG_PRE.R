@@ -22,6 +22,21 @@ library(doParallel)
 # set the first args as the data location
 setwd(args[1])
 
+
+
+## process GIMMS NDVI data
+if (! file.exists("NDVI_GIMMS_82_94_frame.RData")){
+
+ENVI_GIMMS_NDVI<-read.ENVI("NDVI_AU_GIMMS_94_82_flag_5km")
+
+NDVI_GIMMS_82_94_frame<-data.frame(ID=c(1:(dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2])),YEAR=rep(c(1994:1982),each=12*dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2]),MONTH=rep(rep(c(9,10,11,5,3,6,7,1,2,12,8,4),13),each=dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2]),NDVI=as.vector(ENVI_GIMMS_NDVI))
+
+NDVI_GIMMS_82_94_frame<-arrange(NDVI_GIMMS_82_94_frame,ID,YEAR,MOTH)
+
+save(NDVI_GIMMS_82_94_frame,file="NDVI_GIMMS_82_94_frame.RData")
+}
+
+
 if (! dir.exists("infos")){dir.create("infos", showWarnings = TRUE, recursive = FALSE, mode = "0777")}
 
 # load outputs data and save it as "R_result/RESULT.RData"
@@ -37,9 +52,11 @@ filenames<-dir(path=".",include.dirs=TRUE,all.files =TRUE,pattern = "*.RData",fu
 for (i in c(1:length(filenames))){load(filenames[i])}
 list=ls()
 print(list)
-## print summary for all data bases
-info_file="info/summary.txt"
+
+## print summary for all objects to a summary.txt
+info_file="infos/summary.txt"
 file.create(info_file)
+
 for (i in c(1:length(list))){
   write(list[i],file=info_file,append=TRUE)
   write(str(get(list[i])),file=info_file,append=TRUE)
