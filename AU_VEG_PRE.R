@@ -18,6 +18,7 @@ library(plyr)
 library(reshape2)
 library(pryr)
 library(doParallel)
+library(ff)
 
 # set the first args as the data location
 setwd(args[1])
@@ -52,7 +53,7 @@ filenames<-dir(path=".",include.dirs=TRUE,all.files =TRUE,pattern = "*.RData",fu
 for (i in c(1:length(filenames))){
 load(filenames[i])
 print(mem_used())}
-list=ls()
+list<-ls()
 print(list)
 
 ## print summary for all objects to a summary.txt
@@ -75,19 +76,20 @@ for (i in c(1:length(list))){
 ## summary funtion which can output summary information for all objects 
 f_summary<-function(){
 	print("print info for all objects")
-	list=ls()
-	for (i in c(1:length(list))){
-		if ( is.data.frame(get(list[i]))){
-		print(list[i])
-		str(get(list[i]))
-		print(summary.data.frame(get(list[i])))
+	a<-ls(envir=.GlobalEnv)
+	print(a)
+	for (i in c(1:length(a))){
+		if ( is.data.frame(get(a[i]))){
+		print(a[i])
+		str(get(a[i]))
+		print(summary.data.frame(get(a[i])))
 		}
   }
 
 }  
   
 ## merge NDVI data and save data
-if (file.exits(NDVI_mon_82_13.RData)){
+if (file.exists("NDVI_mon_82_13.RData")){
 	print("load NDVI data")
 	}else{
 	names(NDVI_GIMMS_82_94_frame)[3]<-"Month"
