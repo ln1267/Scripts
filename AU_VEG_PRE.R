@@ -21,6 +21,7 @@ library(doParallel)
 library(ff)
 library(bfast)
 library(snowfall)
+library(trend)
 
 # set the first args as the data location
 setwd(args[1])
@@ -116,6 +117,23 @@ f_change<-function(n,data,year_start,year_end,variable){
 	return(list(n,.trend_change,.season_change))
 }
 
+## MK trend detection using "trend" package 
+
+f_mk<-function(n,data,year_start,year_end,variable){
+
+	.start<-(n-1)*((year_end-year_start+1)*12)+1
+	.end<-n*((year_end-year_start+1)*12)
+	.sublinshi<-data[.start:.end,variable]
+
+	if (!any(is.na(.sublinshi))){
+	.linshi<-ts(.sublinshi,frequency = 12,start = c(year_start,1))
+	.outmk<-smk.test(.linshi)
+	.outslope<-sea.sens.slope(.linshi)
+
+	return(list(n,.outmk$tautot,.outmk$pvalue,.outslope$b.sen))
+	}
+}
+
 ##---------this is for comment
 if (0){
 ## merge NDVI data and save data
@@ -175,11 +193,13 @@ cores<-detectCores()-1
 sfInit(parallel=TRUE, cpus=cores, type="SOCK")
 sfLibrary(ff)
 sfLibrary(bfast)
+sfLibrary(trend)
 sfExport("x")
 sfClusterSetupRNG()
-system.time(ls<-sfLapply(1:564400, f_change,data=x,year_start=1982,year_end=2013,variable="NDVI"))
+#system.time(ls<-sfLapply(1:564400, f_change,data=x,year_start=1982,year_end=2013,variable="NDVI"))
+system.time(ls<-sfLapply(1:564400, f_mk,data=x,year_start=1982,year_end=2013,variable="NDVI"))
 la<-do.call("rbind",ls)
-save(ls,file="la.RData")
+save(la,file="mk.RData")
 sfStop()
 
 
