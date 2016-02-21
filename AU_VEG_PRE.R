@@ -94,6 +94,46 @@ f_summary<-function(){
 ## changepoint detection using "bfast" package 
 ## http://www.sciencedirect.com/science/article/pii/S003442570900265X
 
+f_dp<-function(n,data,year_start,year_end){
+	require(bfast)
+	require(trend)
+	.start<-(n-1)*((year_end-year_start+1)*12)+1
+	.end<-n*((year_end-year_start+1)*12)
+	.sublinshi<-data[.start:.end]
+	if(1){
+	if (!any(is.na(.sublinshi))){
+	.linshi<-ts(.sublinshi,frequency = 12,start = c(year_start,1))
+	
+	##---change point detect
+	rdist<-12/length(.linshi)
+	fit <- bfast(.linshi,h=rdist, season="harmonic", max.iter=1,breaks=2)
+	.out<-fit$output[[1]]
+	if ( is.list(.out$bp.Vt)){.trend_change<-.out$bp.Vt$breakpoints}else{.trend_change<-NA}
+	if ( is.list(.out$ci.Wt)){.season_change<-.out$ci.Wt[[1]][2]}else{.season_change<-NA}
+	
+	## MK test
+	.outmk<-smk.test(.linshi)
+	.outslope<-sea.sens.slope(.linshi)
+
+	
+	}else{
+	##---change point detect result
+	.trend_change<-NA
+	.season_change<-NA
+	## MK test result
+	.outmk$tautot<-NA
+	.outmk$pvalue<-NA
+	.outslope$b.sen<-NA
+	
+	}
+	}
+	return(list(n,.outmk$tautot,.outmk$pvalue,.outslope$b.sen))
+	#return(.sublinshi)
+	return(list(ID=n,CP_trend=.trend_change,CP_season=.season_change,TAU=.outmk$tautot,PMK=.outmk$pvalue,SLOPE=.outslope$b.sen))
+}
+
+
+
 f_change<-function(n,data,year_start,year_end,variable){
 
 	.start<-(n-1)*((year_end-year_start+1)*12)+1
@@ -183,31 +223,47 @@ Temp_ann_70_13<-dcast(.linshi,ID+YEAR~variable,mean,na.rm=TRUE)
 ## output summary infos of all variables
 f_summary()
 
-} ## ------this is for comment
+} ## ------this is end for comment
 ## Change point detection of NDVI monthly data
 # set doParallel
 load("NDVI_mon_82_13.RData")
-x<-as.ffdf(NDVI_mon_82_13)
 
-cores<-detectCores()-1
-sfInit(parallel=TRUE, cpus=cores, type="SOCK")
-sfLibrary(ff)
-sfLibrary(bfast)
-sfLibrary(trend)
-sfExport("x")
-sfClusterSetupRNG()
-#system.time(ls<-sfLapply(1:564400, f_change,data=x,year_start=1982,year_end=2013,variable="NDVI"))
-system.time(ls<-sfLapply(1:564400, f_mk,data=x,year_start=1982,year_end=2013,variable="NDVI"))
-la<-do.call("rbind",ls)
-save(la,file="mk.RData")
-sfStop()
+## decide using doparallel or snowfall
+if (1){
+	print("using doParallel to simulate")
+	x<-NDVI_mon_82_13$NDVI
+	cl<-makeCluster(detectCores()-1)  # set up parallel 
+	#clusterEvalQ(cl, library(rms)) # load required packages "rms"
+	clusterExport(cl,c("x"))    # share default data for all threads
 
+	system.time(
+	STA<-parLapply(cl,seq(1,564400),f_dp,data=x,year_start=1982,year_end=2013) # using parLapply to simulate data in parallel way
+	)
+	## combin general returned data
+	STA<-do.call(rbind,STA) 
+	save(STA,file="STA.RData")
+	stopCluster(cl)
+	
+}else{
+	print("using snowfall and ff package to simulate")
+	x<-as.ffdf(NDVI_mon_82_13)
+	cores<-detectCores()-1
+	sfInit(parallel=TRUE, cpus=cores, type="SOCK")
+	sfLibrary(ff)
+	sfLibrary(bfast)
+	sfLibrary(trend)
+	sfExport("x")
+	sfClusterSetupRNG()
+	#system.time(ls<-sfLapply(1:564400, f_change,data=x,year_start=1982,year_end=2013,variable="NDVI"))
+	system.time(ls<-sfLapply(1:564400, f_mk,data=x,year_start=1982,year_end=2013,variable="NDVI"))
+	la<-do.call("rbind",ls)
+	save(la,file="mk.RData")
+	sfStop()
+}
 
 if (0){
 
 ls<-lapply(c(1:564400), f_change,data=ffdf_NDVI,year_start=1982,year_end=2013,variable="NDVI")
-
-
 
 f_change1<-function(n,year_start,year_end,variable){
 	require(bfast)
