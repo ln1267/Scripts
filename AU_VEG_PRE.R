@@ -19,11 +19,13 @@ library(reshape2)
 library(pryr)
 library(doParallel)
 library(ff)
+library(bfast)
+library(snowfall)
 
 # set the first args as the data location
 setwd(args[1])
 
-
+if (0){
 
 ## process GIMMS NDVI data
 if (! file.exists("NDVI_GIMMS_82_94_frame.RData")){
@@ -71,7 +73,7 @@ for (i in c(1:length(list))){
 #	}else{	a<-summary(get(list[i]))}
 #	write.table(a,file=info_file,row.names = FALSE,append=TRUE)
   }
-  
+}  ##------------------------ this is for comment
 # functions---------  
 ## summary funtion which can output summary information for all objects 
 f_summary<-function(){
@@ -87,7 +89,35 @@ f_summary<-function(){
   }
 
 }  
-  
+
+## changepoint detection using "bfast" package 
+## http://www.sciencedirect.com/science/article/pii/S003442570900265X
+
+f_change<-function(n,data,year_start,year_end,variable){
+
+	.start<-(n-1)*((year_end-year_start+1)*12)+1
+	.end<-n*((year_end-year_start+1)*12)
+	.sublinshi<-data[.start:.end,variable]
+	if(1){
+	if (!any(is.na(.sublinshi))){
+	.linshi<-ts(.sublinshi,frequency = 12,start = c(year_start,1))
+	#print(.linshi)
+	rdist<-12/length(.linshi)
+	fit <- bfast(.linshi,h=rdist, season="harmonic", max.iter=1,breaks=2)
+	.out<-fit$output[[1]]
+	if ( is.list(.out$bp.Vt)){.trend_change<-.out$bp.Vt$breakpoints}else{.trend_change<-NA}
+	if ( is.list(.out$ci.Wt)){.season_change<-.out$ci.Wt[[1]][2]}else{.season_change<-NA}
+	}else{
+	.trend_change<-NA
+	.season_change<-NA
+	}
+	}
+	#return(.sublinshi)
+	return(list(n,.trend_change,.season_change))
+}
+
+##---------this is for comment
+if (0){
 ## merge NDVI data and save data
 if (file.exists("NDVI_mon_82_13.RData")){
 	print("load NDVI data")
@@ -135,9 +165,64 @@ Temp_ann_70_13<-dcast(.linshi,ID+YEAR~variable,mean,na.rm=TRUE)
 ## output summary infos of all variables
 f_summary()
 
+} ## ------this is for comment
+## Change point detection of NDVI monthly data
+# set doParallel
+load("NDVI_mon_82_13.RData")
+x<-as.ffdf(NDVI_mon_82_13)
+
+cores<-detectCores()-1
+sfInit(parallel=TRUE, cpus=cores, type="SOCK")
+sfLibrary(ff)
+sfLibrary(bfast)
+sfExport("x")
+sfClusterSetupRNG()
+system.time(ls<-sfLapply(1:564400, f_change,data=x,year_start=1982,year_end=2013,variable="NDVI"))
+la<-do.call("rbind",ls)
+save(ls,file="la.RData")
+sfStop()
 
 
 if (0){
+
+ls<-lapply(c(1:564400), f_change,data=ffdf_NDVI,year_start=1982,year_end=2013,variable="NDVI")
+
+
+
+f_change1<-function(n,year_start,year_end,variable){
+	require(bfast)
+	.start<-(n-1)*((year_end-year_start+1)*12)+1
+	
+	.end<-n*((year_end-year_start+1)*12)
+	print(names(data))
+	
+	.sublinshi<-ffdf_NDVI[1,3]
+	if(0){
+	print(.sublinshi)
+	print(length(na.omit(.sublinshi))>=12)
+	if (!any(is.na(.sublinshi))){
+	.linshi<-ts(.sublinshi,frequency = 12,start = c(year_start,1))
+	print(.linshi)
+	rdist<-12/length(.linshi)
+	fit <- bfast(.linshi,h=rdist, season="harmonic", max.iter=1,breaks=2)
+	.out<-fit$output[[1]]
+	if ( is.list(.out$bp.Vt)){.trend_change<-.out$bp.Vt$breakpoints}else{.trend_change<-NA}
+	if ( is.list(.out$ci.Wt)){.season_change<-.out$ci.Wt[[1]][2]}else{.season_change<-NA}
+	}else{
+	.trend_change<-NA
+	.season_change<-NA
+	}
+	}
+	print(n)
+	return(str(.sublinshi))
+	#return(list(n,.trend_change,.season_change))
+}
+
+f_change1(1785,data=ffdf_NDVI,year_start=1982,year_end=2013,variable="NDVI")
+
+
+
+
 load("RESULT_MJ_LCMerge.RData")
 load("Carbon_ann_MJ.RData")
 load("Carbon_ann_MJ_LCmerge.RData")
