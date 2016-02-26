@@ -1,239 +1,202 @@
-##!/bin/Rscript
-print("Starting to process")
-#------------------
-	## this Rscript is used for analysing the relationship between PRE and VEG in AU
-	## the input data for this code includes an ENVI database for WaSSI model with a parameters.txt and other ENVI data like GIMMS NDVI and Soil moisture data
-	## the *.hdr file for WaSSI inlcudes: DEM; Monthly PRE, TEMP, LAI; MODIS land cover; 11 SOIL parameters developed for SMA-SMC 
-#---------------
+##################################################
 
-#---------
+## this Rscript is used for analysing the relationship between PRE and VEG in AU
+## the input data for this code includes an ENVI database for WaSSI model with a parameters.txt and other ENVI data like GIMMS NDVI and Soil moisture data
+## the *.hdr file for WaSSI inlcudes: DEM; Monthly PRE, TEMP, LAI; MODIS land cover; 11 SOIL parameters developed for SMA-SMC 
+
+##################################################
+
+##!/bin/Rscript
+
+print("Starting to process")
+
+## requirement for this Rscript
 	## read required parameters for R script
 	## parameters are: [1] location of data; [2] file name of input ENVI data; [3] parameters file for ENVI data; [4] Year start for WaSSI; [5] Year End for WaSSI
 	
 args <- commandArgs(TRUE)
 
-#load all required libraries
+##load all required libraries
+
 library(caTools)
 library(plyr)
 library(reshape2)
 library(pryr)
-library(doParallel)
-library(ff)
+library(parallel)
 library(bfast)
-library(snowfall)
 library(trend)
 
-# set the first args as the data location
+## Load functions which are included in "Funcs_AU_PRE.R"
+
+source("Funcs_AU_PRE.R")
+
+## set the first args as the directory for processing --- the data location
+
 setwd(args[1])
 
-if (0){
+if (0){    	# this is used for commenting codes
 
-## process GIMMS NDVI data
+## process GIMMS NDVI data  ---- Read original ENVI MMS monthly data which was recalculated with flag data from  original16days data base
+
 if (! file.exists("NDVI_GIMMS_82_94_frame.RData")){
-print("read GIMMS NDVI from original ENVI Data")
-ENVI_GIMMS_NDVI<-read.ENVI("NDVI_AU_GIMMS_94_82_flag_5km")
 
-NDVI_GIMMS_82_94_frame<-data.frame(ID=c(1:(dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2])),YEAR=rep(c(1994:1982),each=12*dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2]),MONTH=rep(rep(c(9,10,11,5,3,6,7,1,2,12,8,4),13),each=dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2]),NDVI=as.vector(ENVI_GIMMS_NDVI))
-
-NDVI_GIMMS_82_94_frame<-arrange(NDVI_GIMMS_82_94_frame,ID,YEAR,MONTH)
-
-save(NDVI_GIMMS_82_94_frame,file="NDVI_GIMMS_82_94_frame.RData")
+	print("read GIMMS NDVI from original ENVI Data")
+	ENVI_GIMMS_NDVI<-read.ENVI("NDVI_AU_GIMMS_94_82_flag_5km")
+	#Infos of the ENVI data can be read from the *.hdr
+	NDVI_GIMMS_82_94_frame<-data.frame(ID=c(1:(dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2])),YEAR=rep(c(1994:1982),each=12*dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2]),MONTH=rep(rep(c(9,10,11,5,3,6,7,1,2,12,8,4),13),each=dim(ENVI_GIMMS_NDVI)[1]*dim(ENVI_GIMMS_NDVI)[2]),NDVI=as.vector(ENVI_GIMMS_NDVI))
+	NDVI_GIMMS_82_94_frame<-arrange(NDVI_GIMMS_82_94_frame,ID,YEAR,MONTH)
+	save(NDVI_GIMMS_82_94_frame,file="NDVI_GIMMS_82_94_frame.RData")
+	
 }
 
+## Creat a folder for storaging the struction of all dataframes in R memory
 
-if (! dir.exists("infos")){dir.create("infos", showWarnings = TRUE, recursive = FALSE, mode = "0777")}
+	if (! dir.exists("infos")){dir.create("infos", showWarnings = TRUE, recursive = FALSE, mode = "0777")}
 
-# load outputs data and save it as "R_result/RESULT.RData"
-## if this file already exist 
-#if (file.exists("R_result/RESULT.RData")){
+	## read all exist framedata stored in the driver in *.RData and output their infos to "infos/summary.txt"
+	print('loading existing data bases')
 
-print('loading existing data bases')
+	## get names for all exist *RData file in the directory
+	filenames<-dir(path=".", include.dirs=TRUE, all.files =TRUE, pattern = "*.RData", full.names = TRUE)
 
-## get names for all the file
-filenames<-dir(path=".",include.dirs=TRUE,all.files =TRUE,pattern = "*.RData",full.names = TRUE)
-
-## read all result files to a list called RESULT, each of this file was stored as a framedata in the list
-for (i in c(1:length(filenames))){
-load(filenames[i])
-print(mem_used())}
-list<-ls()
-print(list)
-
-## print summary for all objects to a summary.txt
-info_file="infos/summary.txt"
-file.create(info_file)
-
-for (i in c(1:length(list))){
-  write(paste("object name=",list[i]),file=info_file,append=TRUE)
-  write(paste("object dim= \n",dim(get(list[i]))),file=info_file,append=TRUE)
-  write(summary(get(list[i])),file=info_file,append=TRUE)
-  print(list[i])
-  str(get(list[i]))
-#	if (is.data.frame(get(list[i]))){
-#	a<-summary.data.frame(get(list[i]))
-#	}else{	a<-summary(get(list[i]))}
-#	write.table(a,file=info_file,row.names = FALSE,append=TRUE)
-  }
-}  ##------------------------ this is for comment
-# functions---------  
-## summary funtion which can output summary information for all objects 
-f_summary<-function(){
-	print("print info for all objects")
-	a<-ls(envir=.GlobalEnv)
-	print(a)
-	for (i in c(1:length(a))){
-		if ( is.data.frame(get(a[i]))){
-		print(a[i])
-		str(get(a[i]))
-		print(summary.data.frame(get(a[i])))
-		}
-  }
-
-}  
-
-## changepoint detection using "bfast" package 
-## http://www.sciencedirect.com/science/article/pii/S003442570900265X
-
-f_dp<-function(n,data,year_start,year_end){
-	require(bfast)
-	require(trend)
-	.start<-(n-1)*((year_end-year_start+1)*12)+1
-	.end<-n*((year_end-year_start+1)*12)
-	.sublinshi<-data[.start:.end]
-	if(1){
-	if (!any(is.na(.sublinshi))){
-	.linshi<-ts(.sublinshi,frequency = 12,start = c(year_start,1))
+	## read all .RData files to memory
+	for (i in c(1:length(filenames))){
+		
+		load(filenames[i])
+		print(mem_used())
+	}
 	
-	##---change point detect
-	rdist<-12/length(.linshi)
-	fit <- bfast(.linshi,h=rdist, season="harmonic", max.iter=1,breaks=2)
-	.out<-fit$output[[1]]
-	if ( is.list(.out$bp.Vt)){.trend_change<-.out$bp.Vt$breakpoints}else{.trend_change<-NA}
-	if ( is.list(.out$ci.Wt)){.season_change<-.out$ci.Wt[[1]][2]}else{.season_change<-NA}
-	
-	## MK test
-	.outmk<-smk.test(.linshi)
-	.outslope<-sea.sens.slope(.linshi)
+	list<-ls()
+	print(list)
 
-	
-	}else{
-	##---change point detect result
-	.trend_change<-NA
-	.season_change<-NA
-	## MK test result
-	.outmk$tautot<-NA
-	.outmk$pvalue<-NA
-	.outslope$b.sen<-NA
-	
+	## print summary for all objects in memory to a summary.txt
+	info_file="infos/summary.txt"
+	file.create(info_file)
+
+	for (i in c(1:length(list))){
+  		write(paste("object name=",list[i]),file=info_file,append=TRUE)
+		write(paste("object dim= \n",dim(get(list[i]))),file=info_file,append=TRUE)
+		write(summary(get(list[i])),file=info_file,append=TRUE)
+		print(list[i])
+		str(get(list[i]))
 	}
-	}
-	return(list(n,.outmk$tautot,.outmk$pvalue,.outslope$b.sen))
-	#return(.sublinshi)
-	return(list(ID=n,CP_trend=.trend_change,CP_season=.season_change,TAU=.outmk$tautot,PMK=.outmk$pvalue,SLOPE=.outslope$b.sen))
-}
+}  ##------- this is used for commenting codes
 
 
+if (0){  ##---------this is for commenting codes
 
-f_change<-function(n,data,year_start,year_end,variable){
+## merge NDVI databases (NAHH 1995-2013 and GIMMS 1982-1994) and save data to "NDVI_mon_82_13.RData"
 
-	.start<-(n-1)*((year_end-year_start+1)*12)+1
-	.end<-n*((year_end-year_start+1)*12)
-	.sublinshi<-data[.start:.end,variable]
-	if(1){
-	if (!any(is.na(.sublinshi))){
-	.linshi<-ts(.sublinshi,frequency = 12,start = c(year_start,1))
-	#print(.linshi)
-	rdist<-12/length(.linshi)
-	fit <- bfast(.linshi,h=rdist, season="harmonic", max.iter=1,breaks=2)
-	.out<-fit$output[[1]]
-	if ( is.list(.out$bp.Vt)){.trend_change<-.out$bp.Vt$breakpoints}else{.trend_change<-NA}
-	if ( is.list(.out$ci.Wt)){.season_change<-.out$ci.Wt[[1]][2]}else{.season_change<-NA}
-	}else{
-	.trend_change<-NA
-	.season_change<-NA
-	}
-	}
-	#return(.sublinshi)
-	return(list(n,.trend_change,.season_change))
-}
-
-## MK trend detection using "trend" package 
-
-f_mk<-function(n,data,year_start,year_end,variable){
-
-	.start<-(n-1)*((year_end-year_start+1)*12)+1
-	.end<-n*((year_end-year_start+1)*12)
-	.sublinshi<-data[.start:.end,variable]
-
-	if (!any(is.na(.sublinshi))){
-	.linshi<-ts(.sublinshi,frequency = 12,start = c(year_start,1))
-	.outmk<-smk.test(.linshi)
-	.outslope<-sea.sens.slope(.linshi)
-
-	return(list(n,.outmk$tautot,.outmk$pvalue,.outslope$b.sen))
-	}
-}
-
-##---------this is for comment
-if (0){
-## merge NDVI data and save data
 if (file.exists("NDVI_mon_82_13.RData")){
+	
 	print("load NDVI data")
+	
 	}else{
+	
 	names(NDVI_GIMMS_82_94_frame)[3]<-"Month"
 	names(NDVI_GIMMS_82_94_frame)[4]<-"NDVI"
 	names(NDVI_NAHH_mon_frame)[4]<-"NDVI"
+	
 	NDVI_mon_82_13<-rbind(NDVI_GIMMS_82_94_frame,NDVI_NAHH_mon_frame)
 	NDVI_mon_82_13$NDVI[NDVI_mon_82_13$NDVI<0]<-NA
+	
 	save(NDVI_mon_82_13,file="NDVI_mon_82_13.RData")
-	}
+	
+}
 
+##clear memory
 rm(data_climate,NDVI_GIMMS_82_94_frame,NDVI_NAHH_mon_frame,NDVI_NAHH_ann_frame_95_13)
 	
-## rearrange all data by ID, YEAR, MONTH
+## Sort all monthly data by ID, YEAR, MONTH and annual data by ID, YEAR
 climate_mon_frame_70_13<-arrange(climate_mon_frame_70_13,ID,YEAR,Month)
-#data_climate<-arrange(data_climate,ID,YEAR,Month)
 NDVI_mon_82_13<-arrange(NDVI_mon_82_13,ID,YEAR,Month)
-LAI_ann_frame_82_13<-arrange(LAI_ann_frame_82_13,ID,YEAR)
 LAI_mon_frame_82_13<-arrange(LAI_mon_frame_82_13,ID,YEAR,Month)
+LAI_ann_frame_82_13<-arrange(LAI_ann_frame_82_13,ID,YEAR)
 sm_awap_ann_70_13<-arrange(sm_awap_ann_70_13,ID,YEAR)
 SM_mon_frame<-arrange(SM_mon_frame,ID,YEAR,Month)
 SM_ann_frame<-arrange(SM_ann_frame,ID,YEAR)
 
-## calculte annual NDVI
-.linshi<-melt(NDVI_mon_82_13,id=c(1,2,3))
-NDVI_ann_82_13<-dcast(.linshi,ID+YEAR~variable,mean,na.rm=TRUE)  
-#str(NDVI_ann_82_13)
-#print(summary(NDVI_ann_82_13))
-## calculte annual PRE
-.linshi<-melt(climate_mon_frame_70_13[1:4],id=c(1,2,3))
-PRE_ann_70_13<-dcast(.linshi,ID+YEAR~variable,sum,na.rm=TRUE) 
-#str(PRE_ann_70_13)
-#print(summary(PRE_ann_70_13))
+##Omitting missing and abnormal data
+	
+	## Climate data 
+	climate_mon_frame_70_13$Temp[climate_mon_frame_70_13$Temp< -20]<-NA
+	
+## Using f_m2y(data,fun="mean"or"sum") (default is mean) to calculte annual data from monthly database
 
-##------here is for omitting missing and abnormal data 
-climate_mon_frame_70_13$Temp[climate_mon_frame_70_13$Temp< -20]<-NA
+	## NDVI --- mean
+	NDVI_ann_82_13<-f_m2y(NDVI_mon_82_13)  
 
-## calculte annual PRE
-.linshi<-melt(climate_mon_frame_70_13[c(1:3,5)],id=c(1,2,3))
-Temp_ann_70_13<-dcast(.linshi,ID+YEAR~variable,mean,na.rm=TRUE) 
-#str(Temp_ann_70_13)
-#print(summary(Temp_ann_70_13))
+	## PRE --- sum
+	PRE_ann_70_13<-f_m2y(climate_mon_frame_70_13[1:4], fun="sum")
 
-## output summary infos of all variables
+	##TEMP --- mean
+	Temp_ann_70_13<-f_m2y(climate_mon_frame_70_13[c(1:3,5)]) 
+
+## Using f_summary function to output summary infos of all variables in memory
 f_summary()
 
 } ## ------this is end for comment
+
 ## Change point detection of NDVI monthly data
 # set doParallel
 load("NDVI_mon_82_13.RData")
-
+x<-NDVI_mon_82_13$NDVI
+	rm(NDVI_mon_82_13)
+	gc()
+	
 ## decide using doparallel or snowfall
-if (1){
+par<-"doparallel" # "doparallel" or "snow" or "ff" or "foreach"
+
+if (par=="doparallel"){
 	print("using doParallel to simulate")
-	x<-NDVI_mon_82_13$NDVI
-	cl<-makeCluster(detectCores()-1)  # set up parallel 
+	
 	#clusterEvalQ(cl, library(rms)) # load required packages "rms"
+	cl<-makeCluster(detectCores()-1, type="FORK", outfile = "parallel_zeus_debug_2.txt")  # set up parallel 
+	print(mem_used())
+#	cl<-makeCluster(detectCores()-1)  # set up parallel 
+	print(detectCores())	
+#	clusterExport(cl,c("x"))    # share default data for all threads
+
+	system.time(
+	STA<-parLapply(cl,seq(141101, 282200),f_dp,data=x,year_start=1982,year_end=2013) # using parLapply to simulate data in parallel way
+	)
+	## combin general returned data
+	STA<-do.call(rbind,STA) 
+	save(STA,file="STA_2.RData")
+	stopCluster(cl)
+	
+}else if (par=="foreach"){
+	
+	library(foreach)
+	library(doParallel)
+	print("using foreach package to simulate")
+	
+	cl<-makeCluster(detectCores()-1, type="FORK", outfile = "foreach_debug.txt")  # set up parallel
+	registerDoParallel(cl)
+	
+	STA<-foreach(n=1:564400, 
+          .combine = list,
+        #  .export = "x",
+          .packages = c("pryr", "bfast","trend")
+          )  %dopar%  {
+  			tryCatch({
+    		f_dp(n, data=x, year_start=1982, year_end=2013)
+  			}, error = function(e) return(paste("The variable '", n, "'", " caused the error: '", e, "'")))
+	}
+	## combin general returned data
+	##STA<-do.call(rbind,STA) 
+	save(STA,file="STA.RData")
+	stopCluster(cl)	
+	
+}else if (par=="snow"){
+	print("using snow package to simulate")
+	
+	lnxOptions <-list(host = "itasca", rscript = "/group/director1234/software/zeus/apps/gcc/4.8.3/r/3.2.3/lib64/R/bin/Rscript", snowlib = "/home/nliu/R/x86_64-pc-linux-gnu-library/3.2")
+	cl <- makeCluster(c( rep(list(lnxOptions), 2)), type = "SOCK")
+	x<-NDVI_mon_82_13$NDVI
+	
+	nc<-length(cls)
+	
 	clusterExport(cl,c("x"))    # share default data for all threads
 
 	system.time(
@@ -243,19 +206,25 @@ if (1){
 	STA<-do.call(rbind,STA) 
 	save(STA,file="STA.RData")
 	stopCluster(cl)
-	
+
 }else{
+	library(ff)
+	library(snow)
+	library(snowfall)
 	print("using snowfall and ff package to simulate")
-	x<-as.ffdf(NDVI_mon_82_13)
-	cores<-detectCores()-1
-	sfInit(parallel=TRUE, cpus=cores, type="SOCK")
+	
+	data<-as.ff(x)
+	cores<-40
+	sfInit(parallel=TRUE, cpus=cores, socketHosts=c( rep("localhost", cores)), type="SOCK", slaveOutfile="snowcash.txt")
 	sfLibrary(ff)
 	sfLibrary(bfast)
 	sfLibrary(trend)
-	sfExport("x")
+	#sfExport("x")
+	sfExportAll()
 	sfClusterSetupRNG()
-	#system.time(ls<-sfLapply(1:564400, f_change,data=x,year_start=1982,year_end=2013,variable="NDVI"))
-	system.time(ls<-sfLapply(1:564400, f_mk,data=x,year_start=1982,year_end=2013,variable="NDVI"))
+	print("starting to parallel")
+	print(mem_used())
+	system.time(ls<-sfLapply(1:56, f_dp,data=x,year_start=1982,year_end=2013))
 	la<-do.call("rbind",ls)
 	save(la,file="mk.RData")
 	sfStop()
@@ -295,8 +264,6 @@ f_change1<-function(n,year_start,year_end,variable){
 }
 
 f_change1(1785,data=ffdf_NDVI,year_start=1982,year_end=2013,variable="NDVI")
-
-
 
 
 load("RESULT_MJ_LCMerge.RData")
