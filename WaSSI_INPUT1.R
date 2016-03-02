@@ -20,7 +20,8 @@ library(plyr)
 
 # set the first args as the data location
 setwd(args[1])
-
+print(args[1])
+print(args[2])
 if (! dir.exists("INPUTS")){dir.create("INPUTS", showWarnings = TRUE, recursive = FALSE, mode = "0777")}
 
 # load input ENVI data and save it as "data.RData"
@@ -144,6 +145,7 @@ LONG<-rep(seq(S_long, by=cell_size, length.out = ncols),each=nrows)
 data_cell<-data.frame(ID=c(1:(nrows*ncols)),LAT=LAT,LONG=LONG,VEG=VEG,ALT=ALT)
 print(summary(data_cell))
 write.table(data_cell,"INPUTS/CELLINFO.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
+save(data_cell,file="cellinfo.RData")
 print("Finish cell info data")
 #------------------------------
 
@@ -151,9 +153,11 @@ Year_LC<-rep(c(S_y_LC:E_y_LC), each=nrows*ncols)
 ID_LC<-rep(c(1:(nrows*ncols)),(E_y_LC-S_y_LC+1))
 data_LC<-data.frame(ID=ID_LC,YEAR=Year_LC,VEG=LC)
 data_LC<-arrange(data_LC,ID,YEAR)
+save(data_LC,file="landcover.RData")
 print(summary(data_LC))
 data_LC<-subset(data_LC,YEAR>=YEAR_START & YEAR<=YEAR_END)
 write.table(data_LC,"INPUTS/VEGINFO.TXT",sep = ',',row.names = FALSE,col.names=FALSE)
+
 print("Finish LUCC data")
 rm(Year_LC,ID_LC,LC)
 print("finsh data process")
