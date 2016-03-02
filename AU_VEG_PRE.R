@@ -138,19 +138,24 @@ f_summary()
 } ## ------this is end for comment
 
 ## Change point detection of NDVI monthly data
-
-load("NDVI_mon_82_13.RData")
-
 year_start=1982
 year_end=2013
+if(0){
 
+load("NDVI_mon_82_13.RData")
 NDVI_matrix<-matrix(NDVI_mon_82_13$NDVI, nrow=((year_end-year_start+1)*12))
 NDVI_frame<-as.data.frame(NDVI_matrix)
 NDVI_frame<-NDVI_frame[,1:282200]
 	rm(NDVI_mon_82_13, NDVI_matrix)
 	gc()
 
-
+}else{
+load("LAI_ann_frame_82_13.RData")
+LAI_matrix<-matrix(LAI_ann_frame_82_13$LAI, nrow=(year_end-year_start+1))
+LAI_frame<-as.data.frame(LAI_matrix)
+rm(LAI_ann_frame_82_13, LAI_matrix)
+	gc()
+}
 
 
 # set doParallel
@@ -160,20 +165,36 @@ par<-"doparallel" # "doparallel" or "snow" or "ff" or "foreach"
 
 if (par=="doparallel"){
 	print("using doParallel to simulate")
+	if (args[2]=="magnus"){
+	print("using Magnus for processing")
+	cl<-makeCluster(40, type="FORK", outfile = "parallel_LAI_mag.txt")  # set up parallel 
+	
+	print(mem_used())#detectCores()-1
+	print(detectCores())
+	
+	}else{
+	print("using Zeus for processing")
+	cl<-makeCluster(detectCores()-1, type="FORK", outfile = "parallel_LAI_zeus.txt")  # set up parallel 
+	print(mem_used())#
+	print(detectCores())	
+	
+	}
 	
 	#clusterEvalQ(cl, library(rms)) # load required packages "rms"
-	cl<-makeCluster(25, type="FORK", outfile = "parallel_12_mag.txt")  # set up parallel 
-	print(mem_used())#detectCores()-1
-#	cl<-makeCluster(detectCores()-1)  # set up parallel 
-	print(detectCores())	
-#	clusterExport(cl,c("x"))    # share default data for all threads
+	#	clusterExport(cl,c("x"))    # share default data for all threads
 
 	system.time(
-	STA<-parLapply(cl, NDVI_frame, f_dp, year_start=1982, year_end=2013) # using parLapply to simulate data in parallel way
+	STA<-parLapply(cl, LAI_frame, f_dp,seasonal=F, year_start=1982, year_end=2013) # using parLapply to simulate data in parallel way
 	)
 	## combin general returned data
-	STA<-do.call(rbind,STA) 
-	save(STA,file="STA_12_mag.RData")
+	STA<-do.call(rbind,STA)
+	
+	if (args[2]=="magnus"){
+	save(STA,file="STA_LAI_mag.RData")
+	}else{
+	save(STA,file="STA_LAI_zeus.RData")
+	}
+	
 	stopCluster(cl)
 	
 }else if (par=="foreach"){
