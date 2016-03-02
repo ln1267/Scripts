@@ -117,7 +117,7 @@ f_m2y<-function(data, fun="mean"){
 
 ## summary funtion which can output summary information for all data frame objects in memory
 f_summary<-function(){
-	print("print info for all objects")
+	print("print info for all dataframe objects")
 	a<-ls(envir=.GlobalEnv)
 	print(a)
 	for (i in c(1:length(a))){
@@ -129,6 +129,28 @@ f_summary<-function(){
   }
 
 }  
+
+## summary funtion which can output summary information for all list objects in memory
+f_list_summary<-function(){
+  print("print info for all list objects")
+  a<-ls(envir=.GlobalEnv)
+  #print(a)
+  for (i in c(1:length(a))){
+    if (is.list(get(a[i]))){
+      print(a[i])
+      str(get(a[i]))
+      len<-length(get(a[i]))
+      for (j in 1:len){
+        if (is.data.frame(get(a[i])[[j]])){
+          print(names(get(a[i])[j]))
+		  print(summary.data.frame(get(a[i])[[j]]))
+        }
+      }
+    }
+  }	
+}  
+
+
 
 ####################################################################
 ## changepoint detection using "bfast" package and MK test using "trend" package
