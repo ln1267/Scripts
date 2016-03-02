@@ -125,17 +125,16 @@ f_summary<-function(){
 }  
 
 ## changepoint detection using "bfast" package and MK test using "trend" package
-f_dp<-function(n,data,year_start,year_end){
+f_dp<-function(data,year_start,year_end){
 	require(bfast)
 	require(trend)
-	.start<-(n-1)*((year_end-year_start+1)*12)+1
-	.end<-n*((year_end-year_start+1)*12)
-	.sublinshi<-data[.start:.end]
-	print(n)
-	#print(mem_used())
+	#.start<-(n-1)*((year_end-year_start+1)*12)+1
+	#.end<-n*((year_end-year_start+1)*12)
+	#print(n)
+	print(mem_used())
 	if(1){
-	if (!any(is.na(.sublinshi))){
-	.linshi<-ts(.sublinshi,frequency = 12,start = c(year_start,1))
+	if (!any(is.na(data))){
+	.linshi<-ts(data,frequency = 12,start = c(year_start,1))
 	
 	## changepoint detection using "bfast" package 
 	## http://www.sciencedirect.com/science/article/pii/S003442570900265X
@@ -166,6 +165,6 @@ f_dp<-function(n,data,year_start,year_end){
 	}
 	}
 	#return(list(n,.outmk$tautot,.outmk$pvalue,.outslope$b.sen))
-	#return(.sublinshi)
-	return(list(ID=n,CP_trend=.trend_change,CP_season=.season_change,TAU=.outmk$tautot,PMK=.outmk$pvalue,SLOPE=.outslope$b.sen))
+	#return(.sublinshi)ID=n,
+	return(list(CP_trend=.trend_change,CP_season=.season_change,TAU=.outmk$tautot,PMK=.outmk$pvalue,SLOPE=.outslope$b.sen))
 }

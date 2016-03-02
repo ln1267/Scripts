@@ -138,11 +138,22 @@ f_summary()
 } ## ------this is end for comment
 
 ## Change point detection of NDVI monthly data
-# set doParallel
+
 load("NDVI_mon_82_13.RData")
-x<-NDVI_mon_82_13$NDVI
-	rm(NDVI_mon_82_13)
+
+year_start=1982
+year_end=2013
+
+NDVI_matrix<-matrix(NDVI_mon_82_13$NDVI, nrow=((year_end-year_start+1)*12))
+NDVI_frame<-as.data.frame(NDVI_matrix)
+NDVI_frame<-NDVI_frame[,1:282200]
+	rm(NDVI_mon_82_13, NDVI_matrix)
 	gc()
+
+
+
+
+# set doParallel
 	
 ## decide using doparallel or snowfall
 par<-"doparallel" # "doparallel" or "snow" or "ff" or "foreach"
@@ -151,18 +162,18 @@ if (par=="doparallel"){
 	print("using doParallel to simulate")
 	
 	#clusterEvalQ(cl, library(rms)) # load required packages "rms"
-	cl<-makeCluster(detectCores()-1, type="FORK", outfile = "parallel_zeus_debug_2.txt")  # set up parallel 
-	print(mem_used())
+	cl<-makeCluster(25, type="FORK", outfile = "parallel_12_mag.txt")  # set up parallel 
+	print(mem_used())#detectCores()-1
 #	cl<-makeCluster(detectCores()-1)  # set up parallel 
 	print(detectCores())	
 #	clusterExport(cl,c("x"))    # share default data for all threads
 
 	system.time(
-	STA<-parLapply(cl,seq(141101, 282200),f_dp,data=x,year_start=1982,year_end=2013) # using parLapply to simulate data in parallel way
+	STA<-parLapply(cl, NDVI_frame, f_dp, year_start=1982, year_end=2013) # using parLapply to simulate data in parallel way
 	)
 	## combin general returned data
 	STA<-do.call(rbind,STA) 
-	save(STA,file="STA_2.RData")
+	save(STA,file="STA_12_mag.RData")
 	stopCluster(cl)
 	
 }else if (par=="foreach"){
