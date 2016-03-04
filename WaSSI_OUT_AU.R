@@ -22,6 +22,10 @@ setwd(args[1])
 num_grids<-as.integer(args[2])
 print(args[2])
 num_years<-as.integer(args[3])
+
+#load function
+source("/home/nliu/CODE/Scripts/Funcs_AU_PRE.R")
+
 if (! dir.exists("R_result")){dir.create("R_result", showWarnings = TRUE, recursive = FALSE, mode = "0777")}
 
 # load outputs data and save it as "R_result/RESULT.RData"
@@ -79,8 +83,9 @@ names(RESULT[["MONTHFLOW"]])<-c("ID","YEAR","MONTH","PRE","TEMP","SMC","SNWPK","
 names(RESULT[["MONTHCARBON"]])<-c("ID","YEAR","MONTH","GEP","RECO","NEE")
 
 save(RESULT,file = "R_result/RESULT.RData")
-
+#---print summary of the result
 print(str(RESULT))
+f_list_summary()
 print("Saved Result to R_result/RESULT.RData")
 }
 
