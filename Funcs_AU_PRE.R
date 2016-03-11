@@ -8,7 +8,7 @@
 #	f_m2y(data, fun="mean")			for transfering monthly frame data to annual data by using fun="sum" or "mean"	
 #	f_summary()					for outputing summary infos of all "data frame objects" in memory
 #	f_dp(data,seasonal=TRUE,year_start,year_end)	for seasonal or annual changepoint and MK trend analysis
-
+#	f_plot<-function(data,info,annual=FALSE,monthly=FALSE) for monthly or annual grid data plot
 ##################################################
 
 ## setup parallel for "parallel" or "doParallel" or "foreach" or "snow"
@@ -104,8 +104,6 @@ f_parallel<-function(data=null, fun=null, type="parallel"){
 
 }
 
-
-
 ##Transfer monthly frame data to annual data by fun="sum" ot "mean"
 f_m2y<-function(data, fun="mean"){
   
@@ -149,8 +147,6 @@ f_list_summary<-function(){
     }
   }	
 }  
-
-
 
 ####################################################################
 ## changepoint detection using "bfast" package and MK test using "trend" package
@@ -237,3 +233,82 @@ f_dp<-function(data,seasonal=TRUE,year_start,year_end){
 		return(list(CP_trend=.trend_change,TAU=.outmk$tautot,PMK=.outmk$pvalue,SLOPE=.outslope$b.sen))
 	}
 }
+
+####################################################################
+## this function is used for plot result
+## 1, the dataframe data will be transfer to brick
+## 2, using ggplot to plot brick
+#####################################################################
+f_plot<-function(data,info,annual=FALSE,monthly=FALSE){
+	#info<-c("latmin"=1, "latmax"=1, "longmin"=1, "longmax"=1, "ncols"=1, "nrows"=1, "nbands"=1,"year_start"=1, "year_end"=1,"annual"=0,"monthly"=0)
+	## data is the original data frame and info consists the required infor mation for transfering data from frame to brick
+	require(raster)
+	require(plyr)
+	require(rasterVis)
+	require(ggplot2)
+	
+	.brick.plot<-function(bricks,name){
+		
+			.gplot<-gplot(bricks) + geom_tile(aes(fill = value)) +
+			facet_wrap(~ variable) + #,ncol=3
+			#scale_fill_gradient(low = 'white', high = 'blue') +
+			scale_fill_gradientn(colours=c("blue","green","yellow","red"),name=name,na.value = "grey70")+ #limits=c(500,1000),
+			coord_equal()+
+			theme_set(theme_bw())
+			
+			#ggsave(filename, plot = last_plot(), device = NULL, path = NULL, scale = 1, width = NA, height = NA, units = c("in", "cm", "mm"), dpi = 300, limitsize = TRUE, ...)
+			#ggsave(gplot,file =paste("trend/","P_Q.pdf",sep=""),width = 10,  units = c("cm"),dpi = 300)
+			filename<-paste("images/",name,".pdf",sep="")
+			ggsave(.gplot,file=filename,width = 20,  units = c("cm"),dpi=300)
+			
+			#print(class(a))
+		}
+	
+	if(annual){
+		
+		if(monthly){
+	## this is for monthly result
+		data<-arrange(data,YEAR,MONTH,ID)
+			for (var in 4:length(data)){
+				nbands=(info["year_end"]-info["year_start"]+1)*12
+				.array<-array(data[[var]],c(info["ncols"],info["nrows"],nbands))
+				.brick<-brick(.array,xmn=info["longmin"],xmx=info["longmax"],ymn=info["latmin"],ymx=info["latmax"],crs="+proj=longlat+datum=WGS84")
+				names(.brick)<-paste("Monthly",names(data)[var],paste(rep(c(info["year_start"]:info["year_end"]),each=12),c(1:12)))
+				print(paste("Monthly",names(data)[var]))
+				.name<-paste("Monthly",names(data)[var],sep="_")
+				.brick.plot(.brick,.name)	
+				
+				#print(.brick)
+			}
+		}else{
+	## this is for annual result
+		data<-arrange(data,YEAR,ID)
+			for (var in 3:length(data)){
+			nbands=info["year_end"]-info["year_start"]+1
+			.array<-array(data[[var]],c(info["ncols"],info["nrows"],nbands))
+			.brick<-brick(.array,xmn=info["longmin"],xmx=info["longmax"],ymn=info["latmin"],ymx=info["latmax"],crs="+proj=longlat+datum=WGS84")
+			names(.brick)<-paste("Annual",names(data)[var],c(info["year_start"]:info["year_end"]))
+			#print(.brick)
+			print(paste("Annual",names(data)[var]))
+			.name<-paste("Annual",names(data)[var],sep="_")
+			.brick.plot(.brick,.name)
+			}
+		}
+	}else{
+	## this is for HUC result
+		for (var in 2:length(data)){
+			nbands=1
+			.array<-array(data[[var]],c(info["ncols"],info["nrows"],nbands))
+			.brick<-brick(.array,xmn=info["longmin"],xmx=info["longmax"],ymn=info["latmin"],ymx=info["latmax"],crs="+proj=longlat+datum=WGS84")
+			names(.brick)<-paste("HUC",names(data)[var])
+			#print(.brick)
+			.name<-paste("HUC",names(data)[var],sep="_")
+			print(paste("HUC",names(data)[var]))
+			.brick.plot(.brick,.name)
+			
+		}
+	}
+
+}
+
+	
