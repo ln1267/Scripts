@@ -28,7 +28,10 @@ args <- commandArgs(TRUE)
 	
 # set the first args as the data location
 	setwd(args[1])
-
+	
+#load functions
+	source("/home/nliu/CODE/Scripts/Funcs_AU_PRE.R")
+	
 #	Read nc AULWB database and aggregate it to monthly
 
 	##	initiate global parameters
@@ -101,18 +104,18 @@ args <- commandArgs(TRUE)
 			
 	}
 
-#	transfer grid result to dataframe and save it to "AULWB_frame.RData"
+#	transfer grid result to dataframe and save it to "AULWB_frame_mon.RData" and "AULWB_frame_ann.RData"
 	nrows<-680
 	ncols<-830
 	
-	AULWB_frame<-data.frame(ID=rep(c(1:(nrows*ncols)),12*(end_y-start_y+1)),YEAR=rep(c(start_y:end_y), each=nrows*ncols*12),Month=rep(rep(c(1:12), each=nrows*ncols),(end_y-start_y+1)),RR_LWB=as.vector(rr_mon),AET_LWB=as.vector(aet_mon),Q_LWB=as.vector(runoff_mon))
+	AULWB_frame_mon<-data.frame(ID=rep(c(1:(nrows*ncols)),12*(end_y-start_y+1)),YEAR=rep(c(start_y:end_y), each=nrows*ncols*12),Month=rep(rep(c(1:12), each=nrows*ncols),(end_y-start_y+1)),RR_LWB=as.vector(rr_mon),AET_LWB=as.vector(aet_mon),Q_LWB=as.vector(runoff_mon))
 
-	AULWB_frame<-arrange(AULWB_frame,ID,YEAR,Month)
+	AULWB_frame_mon<-arrange(AULWB_frame,ID,YEAR,Month)
 	
-	print(summary(AULWB_frame))
-
-	save(AULWB_frame,file="AULWB_frame.RData")
-
+	AULWB_frame_ann<-f_m2y(AULWB_frame_mon, fun="sum")
+	
+	save(AULWB_frame_mon,file="AULWB_frame_mon.RData")
+	save(AULWB_frame_ann,file="AULWB_frame_ann.RData")
 
 	
 	
