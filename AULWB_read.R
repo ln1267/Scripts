@@ -110,7 +110,7 @@ args <- commandArgs(TRUE)
 	
 	AULWB_frame_mon<-data.frame(ID=rep(c(1:(nrows*ncols)),12*(end_y-start_y+1)),YEAR=rep(c(start_y:end_y), each=nrows*ncols*12),Month=rep(rep(c(1:12), each=nrows*ncols),(end_y-start_y+1)),RR_LWB=as.vector(rr_mon),AET_LWB=as.vector(aet_mon),Q_LWB=as.vector(runoff_mon))
 
-	AULWB_frame_mon<-arrange(AULWB_frame,ID,YEAR,Month)
+	AULWB_frame_mon<-arrange(AULWB_frame_mon,ID,YEAR,Month)
 	
 	AULWB_frame_ann<-f_m2y(AULWB_frame_mon, fun="sum")
 	
