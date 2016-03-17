@@ -2,7 +2,6 @@
 
 # This file includs all functions used for studying the relationship between VEG and PRE in AU
 
-
 ###---------list of functions
 #	f_parallel(data=null, fun=null, type="parallel")		for setting up parallel methods
 #	f_m2y(data, fun="mean")			for transfering monthly frame data to annual data by using fun="sum" or "mean"	
@@ -113,6 +112,26 @@ f_m2y<-function(data, fun="mean"){
   
 }
 
+##Transfer grid frame data to basin data by fun="mean"
+f_grid2basin<-function(data,type="annual",fun="mean"){
+	if(type=="HUC"){
+			
+		.linshi<-melt(data,id=c(1,2))
+		.out<-dcast(.linshi, BASIN~variable, get(fun), na.rm=TRUE) 
+		return(.out)
+	}else if(type=="annual"){
+			
+		.linshi<-melt(data,id=c(1,2,3))
+		.out<-dcast(.linshi, BASIN+YEAR~variable, get(fun), na.rm=TRUE) 
+		return(.out)
+			
+	}else if(type=="month"){
+			
+		.linshi<-melt(data,id=c(1,2,3,4))
+		.out<-dcast(.linshi, BASIN+YEAR+MONTH~variable, get(fun), na.rm=TRUE) 
+		return(.out)
+	}
+}
 ## summary funtion which can output summary information for all data frame objects in memory
 f_summary<-function(){
 	print("print info for all dataframe objects")
