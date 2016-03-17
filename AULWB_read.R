@@ -100,3 +100,19 @@ args <- commandArgs(TRUE)
 		}
 			
 	}
+
+#	transfer grid result to dataframe and save it to "AULWB_frame.RData"
+	nrows<-680
+	ncols<-830
+	
+	AULWB_frame<-data.frame(ID=rep(c(1:(nrows*ncols)),12*(end_y-start_y+1)),YEAR=rep(c(start_y:end_y), each=nrows*ncols*12),Month=rep(rep(c(1:12), each=nrows*ncols),(end_y-start_y+1)),RR_LWB=as.vector(rr_mon),AET_LWB=as.vector(aet_mon),Q_LWB=as.vector(runoff_mon))
+
+	AULWB_frame<-arrange(AULWB_frame,ID,YEAR,Month)
+	
+	print(summary(AULWB_frame))
+
+	save(AULWB_frame,file="AULWB_frame.RData")
+
+
+	
+	
