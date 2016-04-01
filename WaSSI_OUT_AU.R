@@ -111,7 +111,9 @@ args <- commandArgs(TRUE)
 				}	
 			}
 		}
-		
+	## save to new result
+		save(RESULT,file="RESULT_NEW.RData")
+	
 # load info data for AU
 	load("../cellinfo.RData")
 	load("../landcover.RData")
@@ -122,12 +124,12 @@ args <- commandArgs(TRUE)
 	
 	outs<-c("HUCFLOW","HUCCARBON","ANNUALFLOW","ANNUALCARBON")#,"MONTHFLOW","MONTHCARBON")
 	
-	f_plot(RESULT[[outs[1]]],info=info,annual=FALSE,monthly=FALSE)
-	f_plot(RESULT[[outs[2]]],info=info,annual=FALSE,monthly=FALSE)
-	f_plot(RESULT[[outs[3]]],info=info,annual=T,monthly=F)
-	f_plot(RESULT[[outs[4]]],info=info,annual=T,monthly=F)
-	#f_plot(RESULT[[outs[5]]],info=info,annual=T,monthly=T)
-	#f_plot(RESULT[[outs[6]]],info=info,annual=T,monthly=T)
+	# f_grid_plot(RESULT[[outs[1]]],info=info,annual=FALSE,monthly=FALSE)
+	# f_grid_plot(RESULT[[outs[2]]],info=info,annual=FALSE,monthly=FALSE)
+	# f_grid_plot(RESULT[[outs[3]]],info=info,annual=T,monthly=F)
+	# f_grid_plot(RESULT[[outs[4]]],info=info,annual=T,monthly=F)
+	#f_grid_plot(RESULT[[outs[5]]],info=info,annual=T,monthly=T)
+	#f_grid_plot(RESULT[[outs[6]]],info=info,annual=T,monthly=T)
 
 	
 
@@ -140,15 +142,22 @@ args <- commandArgs(TRUE)
 			### if this file already exist
 			print('loading Basin data from Basin_WA.RData')
 			load("Basin_WA.RData")
-			load("Station_info.RData")
+			load("Station_WA_info.RData")
+			load("Basin_HRS.RData")
 		}else{
 			require(caTools)
 			Basin_WA<-read.ENVI("subcatchments_WA_5km")
 			Basin_WA<-data.frame(ID=c(1:564400),BASIN=as.vector(Basin_WA))
 			Basin_WA[Basin_WA==0]<-NA
-			Station_info<-read.csv("WIN_subcatchments_info.txt",header=T)
+			Station_WA_info<-read.csv("WIN_subcatchments_info.txt",header=T)
 			save(Basin_WA,file="Basin_WA.RData")
-			save(Station_info,file="Station_info.RData")
+			save(Station_WA_info,file="Station_WA_info.RData")
+			
+			Basin_HRS<-read.ENVI("subcatchments_HRS_5km")
+			Basin_HRS<-data.frame(ID=c(1:564400),BASIN=as.vector(Basin_HRS))
+			Basin_HRS[Basin_HRS==0]<-NA
+			save(Basin_HRS,file="Basin_HRS.RData")
+
 		}
 	
 	## load AU Basin boundary and infos and save it to Basin_AU.RData"
@@ -164,8 +173,88 @@ args <- commandArgs(TRUE)
 			Basin_AU<-read.ENVI("swma_Basins_5km")
 			Basin_AU<-data.frame(ID=c(1:564400),BASIN=as.vector(Basin_AU))
 			Basin_AU[Basin_AU==0]<-NA
-			Station_info<-read.csv("Basin_AU_info.txt",header=T)
+			Basin_AU_info<-read.csv("Basin_AU_info.txt",header=T)
 			save(Basin_AU,file="Basin_AU.RData")
-			save(Station_info,file="Basin_AU_info.RData")
+			save(Basin_AU_info,file="Basin_AU_info.RData")
 		}
+	
+	##	load AULWB dataframe (2006-2015)
+		load("../VALID/AULWB/AULWB_frame_mon.RData")
+		load("../VALID/AULWB/AULWB_frame_ann.RData")
 		
+	## Sta basin result
+		y_s<-2006
+		y_e<-2013
+		## annual sta.
+		.AULWB<-subset(AULWB_frame_ann,YEAR>=y_s & YEAR<=y_e)
+		.WaSSI<-subset(RESULT$ANNUALFLOW,YEAR>=y_s & YEAR<=y_e)
+		Valid_frame_ann<-cbind(BASIN=rep(Basin_AU$BASIN,each=(y_e-y_s+1)),.WaSSI,.AULWB[3:5])
+		Valid_frame_WA_ann<-cbind(BASIN=rep(Basin_WA$BASIN,each=(y_e-y_s+1)),.WaSSI,.AULWB[3:5])
+		
+		Basin_ann<-f_grid2basin(Valid_frame_ann,type="annual",fun="mean")
+		Basin_WA_ann<-f_grid2basin(Valid_frame_WA_ann,type="annual",fun="mean")
+		
+		save(Basin_ann,file="Basin_ann.RData")
+		write.csv(Basin_ann,"Basin_valid_ann.csv",row.names=F)
+		save(Basin_WA_ann,file="Basin_WA_ann.RData")
+		write.csv(Basin_WA_ann,"Basin_valid_WA_ann.csv",row.names=F)
+		
+		## monthly sta.
+		.AULWB<-subset(AULWB_frame_mon,YEAR>=y_s & YEAR<=y_e)
+		.WaSSI<-subset(RESULT$MONTHFLOW,YEAR>=y_s & YEAR<=y_e)
+		Valid_frame_mon<-cbind(BASIN=rep(Basin_AU$BASIN,each=(y_e-y_s+1)*12),.WaSSI,.AULWB[4:6])
+		Valid_frame_WA_mon<-cbind(BASIN=rep(Basin_WA$BASIN,each=(y_e-y_s+1)*12),.WaSSI,.AULWB[4:6])
+		
+		Basin_mon<-f_grid2basin(Valid_frame_mon,type="month",fun="mean")
+		Basin_WA_mon<-f_grid2basin(Valid_frame_WA_mon,type="month",fun="mean")
+		
+		save(Basin_mon,file="Basin_mon.RData")
+		write.csv(Basin_mon,"Basin_valid_mon.csv",row.names=F)
+		save(Basin_WA_mon,file="Basin_WA_mon.RData")
+		write.csv(Basin_WA_mon,"Basin_valid_WA_mon.csv",row.names=F)
+		
+	## validate basin result with observed data
+		load("Basin_WA_ann.RData")
+		load("Basin_WA_mon.RData")
+		load("../VALID/WA_Q/Streamflow_WA_ann.RData")
+		load("../VALID/WA_Q/Streamflow_WA_month.RData")
+		## merge station info data and shape file  
+			if(T){
+			print("using Full site details")
+			WA_info<-read.csv("All_Site_Details.csv",header=T)
+			WA_info<-WA_info[c(5,11)]
+			names(WA_info)<-c("WIN_REF","AREA")
+			WA_info$AREA<-as.numeric(as.character(WA_info$AREA))
+			load("Station_WA_info.RData")
+			Sta_WA_info<-Station_WA_info[c("WIN_REF","ID_ning")]
+			
+			Sta_WA_info<-merge(Sta_WA_info,WA_info,by="WIN_REF",all.x=T)
+			
+			}else{
+			print("using station info")
+			load("Station_WA_info.RData")
+			Sta_WA_info<-Station_WA_info[c("WIN_REF","SHAPE_AREA","ID_ning")]
+			}
+			
+			Sites_WA<-levels(Streamflow_WA_ann$Station)
+			Sites_WA<-as.integer(Sites_WA)
+			Sites_WA<-data.frame(WIN_REF=Sites_WA)
+			Sites_WA<-merge(Sites_WA,Sta_WA_info,by="WIN_REF",all.x=T)
+		  
+			names(Sites_WA)<-c("Station","BASIN","AREA")			  
+			Sites_WA$Station<-as.factor(Sites_WA$Station)
+			Streamflow_WA_ann<-merge(Streamflow_WA_ann,Sites_WA,by="Station",all.x=T)
+			Streamflow_WA_month<-merge(Streamflow_WA_month,Sites_WA,by="Station",all.x=T)
+		##	merge station observation to simulated data
+			Basin_WA_ann<-merge(Basin_WA_ann,Streamflow_WA_ann,by=c("BASIN","YEAR"),all.x=T)
+			Basin_WA_mon<-merge(Basin_WA_mon,Streamflow_WA_month,by=c("BASIN","YEAR","MONTH"),all.x=T)
+			
+		Basin_WA_ann<-na.omit(Basin_WA_ann)
+		Basin_WA_mon<-na.omit(Basin_WA_mon)
+		
+		save(Basin_WA_ann,file="Basin_WA_valid_ann.RData")
+		write.csv(Basin_WA_ann,"Basin_WA_valid_ann_all.csv",row.names=F)
+		save(Basin_WA_mon,file="Basin_WA_valid_mon.RData")
+		write.csv(Basin_WA_mon,"Basin_valid_WA_mon_all.csv",row.names=F)
+		
+	f_list_summary()
