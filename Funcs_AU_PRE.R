@@ -8,6 +8,8 @@
 #	f_summary()					for outputing summary infos of all "data frame objects" in memory
 #	f_dp(data,seasonal=TRUE,year_start,year_end)	for seasonal or annual changepoint and MK trend analysis
 #	f_plot<-function(data,info,annual=FALSE,monthly=FALSE) for monthly or annual grid data plot
+#	f_grid2basin(data,type="annual",fun="mean")	#Transfer grid frame data to basin data by fun="mean"
+
 ##################################################
 
 ## setup parallel for "parallel" or "doParallel" or "foreach" or "snow"
@@ -254,11 +256,11 @@ f_dp<-function(data,seasonal=TRUE,year_start,year_end){
 }
 
 ####################################################################
-## this function is used for plot result
+## this function is used for plot Brick result
 ## 1, the dataframe data will be transfer to brick
 ## 2, using ggplot to plot brick
 #####################################################################
-f_plot<-function(data,info,annual=FALSE,monthly=FALSE){
+f_grid_plot<-function(data,info,annual=FALSE,monthly=FALSE){
 	#info<-c("latmin"=1, "latmax"=1, "longmin"=1, "longmax"=1, "ncols"=1, "nrows"=1, "nbands"=1,"year_start"=1, "year_end"=1,"annual"=0,"monthly"=0)
 	## data is the original data frame and info consists the required infor mation for transfering data from frame to brick
 	require(raster)
@@ -330,4 +332,50 @@ f_plot<-function(data,info,annual=FALSE,monthly=FALSE){
 
 }
 
-	
+####################################################################
+## this function is used for plot scatter valid result
+## 1, the dataframe data will be transfer to brick
+## 2, using ggplot to plot brick
+#####################################################################
+f_scatter_plot<-function(data,info,annual=FALSE,monthly=FALSE){
+cof<-coef(lm(Q[3:9] ~ Observed[3:9], data = ann_mean_MJ))
+
+ggplot(ann_mean_MJ, aes(x=Observed[3:9], y=Q[3:9])) +
+  geom_point(size=4) +    # Use hollow circles
+  geom_abline(intercept = cof[1], slope = cof[2]) +   # Don't add shaded confidence region
+  #geom_abline(intercept = 0, slope = 1,linetype="dashed") +
+  scale_x_continuous(name="Observed annual runoff (mm)") +
+  scale_y_continuous(name="Simulated annual runoff (mm)")+#limits=c(300, 700)
+  theme(axis.title.x = element_text(family="Times",face="bold", colour="black", size=12),
+        axis.title.y  = element_text(family="Times",face="bold", colour="black", size=12),
+        axis.text.x  = element_text(family="Times",face="bold",size=10),
+        axis.text.y  = element_text(family="Times",face="bold",size=10))+
+  annotate("text",family="Times", x = 500, y = 525, label = "Y = 0.94 * X - 93.8", fontface="italic",size=8)+
+  annotate("text",family="Times", x = 500, y = 500, label="R^2 = 0.75\n RMSE = 135 mm", size=6)
+
+	#ylab(expression("today's temperature is "*-5~degree*C))
+	#qplot(1,1) + ylab(expression(Temp^2))
+
+####-------plot veg water balance box
+}
+
+f_box_plot<-function(name1){
+  g_plot<-ggplot(data = ann_mean_main_veg, aes(x = VEG, y = ann_mean_main_veg[[a]])) + 
+    stat_boxplot(geom = "errorbar", stat_params = list(width = 0.5), geom_params = list()) +
+    geom_boxplot() + xlab("Vegetation types") + 
+    ylab(name1) + theme_bw(base_size = 16, base_family = "Times")
+  ggsave(g_plot,file =paste("box/",names(ann_mean_MJ),".pdf",sep="")[a],dpi = 300)
+  #print(g_plot)
+}
+
+###   plot annual mean line 
+f_line_plot<-function(name1){
+  r<-coef(lm(mean_ann_MJ_Y[[a]] ~ YEAR, data = mean_ann_MJ_Y))
+  print(r[2])
+  l_plot<- ggplot(data = mean_ann_MJ_Y, aes(x = YEAR, y = mean_ann_MJ_Y[[a]])) + geom_point(size=4,shape=21, fill="white") + 
+    geom_line(size = 1) + scale_x_continuous(breaks=2002:2014)+
+    xlab("YEAR") + ylab(name1) + theme_bw(base_size = 14, base_family = "Times") +
+    geom_abline(intercept = r[1], slope = r[2])
+  ggsave(l_plot,file =paste("line/",names(mean_ann_MJ_Y),".pdf",sep="")[a],dpi = 300)
+  print(names(mean_ann_MJ_Y)[a])
+}
